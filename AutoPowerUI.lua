@@ -2,7 +2,7 @@
 -- Draggable UI with Dropdowns
 -- Toggle GUI with Left Control
 -- Blue background
--- Designed for GitHub repository use
+-- Fixed: AFK button visible
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -56,23 +56,22 @@ gui.ResetOnSpawn = false
 gui.Enabled = true
 
 local container = Instance.new("Frame", gui)
-container.Size = UDim2.new(0,220,0,40) -- height will expand with dropdowns
+container.Size = UDim2.new(0,220,0,40)
 container.Position = UDim2.new(0.5,-110,0.5,-20)
-container.BackgroundColor3 = Color3.fromRGB(0,120,255) -- bright blue
+container.BackgroundColor3 = Color3.fromRGB(0,120,255) -- bright blue background
 container.BorderSizePixel = 0
 
--- Add rounded corners for style
 local uicorner = Instance.new("UICorner", container)
 uicorner.CornerRadius = UDim.new(0,10)
 
--- Dropdown Creation Function
+-- Dropdown handling
 local allDropdowns = {}
 
 local function createDropdown(name, buttons)
     local frame = Instance.new("Frame", container)
     frame.Size = UDim2.new(0,200,0,30)
-    frame.Position = UDim2.new(0,0,0,#container:GetChildren()*35)
-    frame.BackgroundColor3 = Color3.fromRGB(0,90,200) -- darker blue for button background
+    frame.Position = UDim2.new(0,0,#container:GetChildren()*35,0)
+    frame.BackgroundColor3 = Color3.fromRGB(0,90,200)
     frame.BorderSizePixel = 0
     local frameCorner = Instance.new("UICorner", frame)
     frameCorner.CornerRadius = UDim.new(0,8)
@@ -83,19 +82,18 @@ local function createDropdown(name, buttons)
     drop.Font = Enum.Font.SourceSans
     drop.TextSize = 18
     drop.BackgroundTransparency = 1
-    drop.AutoButtonColor = true
     drop.TextColor3 = Color3.fromRGB(255,255,255)
 
     local dropFrame = Instance.new("Frame", frame)
     dropFrame.Size = UDim2.new(0,200,0,#buttons*30)
-    dropFrame.Position = UDim2.new(1,5,0,0) -- right of button
+    dropFrame.Position = UDim2.new(1,5,0,0)
     dropFrame.BackgroundColor3 = Color3.fromRGB(0,100,220)
     dropFrame.BorderSizePixel = 0
-    dropFrame.Visible = false
+    dropFrame.Visible = true -- default visible so AFK button shows
     local dropCorner = Instance.new("UICorner", dropFrame)
     dropCorner.CornerRadius = UDim.new(0,8)
 
-    table.insert(allDropdowns, {Button = drop, Frame = dropFrame, Name = name})
+    table.insert(allDropdowns, {Button=drop, Frame=dropFrame, Name=name})
 
     for i,b in pairs(buttons) do
         local btn = Instance.new("TextButton", dropFrame)
@@ -106,10 +104,10 @@ local function createDropdown(name, buttons)
         btn.TextSize = 16
         btn.BackgroundColor3 = Color3.fromRGB(0,120,255)
         btn.BorderSizePixel = 0
-        btn.AutoButtonColor = true
         btn.TextColor3 = Color3.fromRGB(255,255,255)
         local btnCorner = Instance.new("UICorner", btn)
         btnCorner.CornerRadius = UDim.new(0,6)
+        btn.AutoButtonColor = true
 
         btn.MouseButton1Click:Connect(function()
             local newText = b.Func(btn)
@@ -128,7 +126,7 @@ local function createDropdown(name, buttons)
     end)
 end
 
--- Create Dropdowns
+-- Create Main Dropdown with both buttons
 createDropdown("Main", {
     {Text="Attack: OFF", Func=function()
         if autoPower then stopAttack() return "Attack: OFF"
