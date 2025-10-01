@@ -1,4 +1,4 @@
--- Cute Hub style UI with horizontal dropdowns
+-- Cute Hub style UI with vertical dropdown buttons
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -22,7 +22,7 @@ container.BackgroundTransparency = 0.1
 container.BorderSizePixel = 0
 Instance.new("UICorner", container).CornerRadius = UDim.new(0,12)
 
--- Function to create horizontal dropdown
+-- Function to create dropdown (vertical buttons)
 local function createDropdown(name, buttons, yPos)
     -- Dropdown button
     local mainBtn = Instance.new("TextButton", container)
@@ -37,21 +37,21 @@ local function createDropdown(name, buttons, yPos)
     mainBtn.AutoButtonColor = true
     Instance.new("UICorner", mainBtn).CornerRadius = UDim.new(0,8)
 
-    -- Dropdown frame (to the right)
+    -- Dropdown frame (vertical below button)
     local dropFrame = Instance.new("Frame", container)
-    dropFrame.Size = UDim2.new(0, (#buttons * 145) + (#buttons-1)*5, 0, 40)
-    dropFrame.Position = UDim2.new(1, 5, 0, yPos)
+    dropFrame.Size = UDim2.new(0,200,0,#buttons*35)
+    dropFrame.Position = UDim2.new(0,10,0,yPos+35)
     dropFrame.BackgroundColor3 = Color3.fromRGB(0,90,200)
     dropFrame.BackgroundTransparency = 0.1
     dropFrame.BorderSizePixel = 0
     dropFrame.Visible = false
     Instance.new("UICorner", dropFrame).CornerRadius = UDim.new(0,8)
 
-    -- Buttons inside dropdown (horizontal)
+    -- Buttons inside dropdown (vertical)
     for i, b in ipairs(buttons) do
         local btn = Instance.new("TextButton", dropFrame)
-        btn.Size = UDim2.new(0, 140, 0, 30)
-        btn.Position = UDim2.new(0, (i-1)*(140+5), 0, 5)
+        btn.Size = UDim2.new(1, -10, 0, 30)
+        btn.Position = UDim2.new(0, 5, 0, (i-1)*35 + 2)
         btn.Text = b.Text
         btn.Font = Enum.Font.SourceSans
         btn.TextSize = 16
@@ -73,7 +73,7 @@ local function createDropdown(name, buttons, yPos)
     end)
 end
 
--- Create Main dropdown
+-- Main dropdown
 createDropdown("Main", {
     {Text = "Attack: OFF", Func = function()
         if autoPower then autoPower=false return "Attack: OFF"
@@ -104,7 +104,7 @@ createDropdown("Main", {
     end}
 }, 7)
 
--- Create Farm dropdown (empty for now, ready to add buttons)
+-- Farm dropdown (example)
 createDropdown("Farm", {
     {Text = "Example Btn", Func = function() return "Clicked!" end}
 }, 52)
