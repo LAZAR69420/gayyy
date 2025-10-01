@@ -8,10 +8,18 @@ local r = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PlayerClickAtt
 local autoPower, antiAFK = false, false
 
 -- ScreenGui
-local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+local gui = Instance.new("ScreenGui")
 gui.Name = "CuteHubCustomUI"
 gui.ResetOnSpawn = false
 gui.Enabled = true
+
+-- Use CoreGui if PlayerGui fails (some executors require CoreGui)
+local success, err = pcall(function()
+    gui.Parent = player:WaitForChild("PlayerGui")
+end)
+if not success then
+    gui.Parent = game:GetService("CoreGui")
+end
 
 -- Main container
 local container = Instance.new("Frame", gui)
@@ -35,7 +43,7 @@ mainBtn.BorderSizePixel = 0
 mainBtn.AutoButtonColor = true
 Instance.new("UICorner", mainBtn).CornerRadius = UDim.new(0,8)
 
--- Main dropdown frame (to the right)
+-- Main dropdown frame
 local mainDrop = Instance.new("Frame", container)
 mainDrop.Size = UDim2.new(0,200,0,70)
 mainDrop.Position = UDim2.new(1,5,0,0)
@@ -125,7 +133,7 @@ farmBtn.BorderSizePixel = 0
 farmBtn.AutoButtonColor = true
 Instance.new("UICorner", farmBtn).CornerRadius = UDim.new(0,8)
 
--- Farm dropdown frame (to the right)
+-- Farm dropdown frame
 local farmDrop = Instance.new("Frame", container)
 farmDrop.Size = UDim2.new(0,200,0,40)
 farmDrop.Position = UDim2.new(1,5,0,50)
@@ -162,39 +170,4 @@ end)
 farmBtn.MouseButton1Click:Connect(function()
     farmDrop.Visible = not farmDrop.Visible
     farmBtn.Text = "Farm " .. (farmDrop.Visible and "▲" or "▼")
-end)
-
--- Dragging
-local dragging, dragInput, dragStart, startPos=false,nil,nil,nil
-container.InputBegan:Connect(function(input)
-    if input.UserInputType==Enum.UserInputType.MouseButton1 then
-        dragging=true
-        dragStart=input.Position
-        startPos=container.Position
-        input.Changed:Connect(function()
-            if input.UserInputState==Enum.UserInputState.End then dragging=false end
-        end)
-    end
-end)
-container.InputChanged:Connect(function(input)
-    if input.UserInputType==Enum.UserInputType.MouseMovement then dragInput=input end
-end)
-UserInputService.InputChanged:Connect(function(input)
-    if input==dragInput and dragging then
-        local delta=input.Position-dragStart
-        container.Position=UDim2.new(
-            startPos.X.Scale,
-            startPos.X.Offset+delta.X,
-            startPos.Y.Scale,
-            startPos.Y.Offset+delta.Y
-        )
-    end
-end)
-
--- Toggle UI with Left Control
-UserInputService.InputBegan:Connect(function(input,gp)
-    if gp then return end
-    if input.KeyCode==Enum.KeyCode.LeftControl then
-        gui.Enabled = not gui.Enabled
-    end
 end)
