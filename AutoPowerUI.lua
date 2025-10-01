@@ -15,21 +15,21 @@ gui.Name = "CuteHubCustomUI"
 gui.ResetOnSpawn = false
 gui.Enabled = true
 
--- Main container (big enough for multiple dropdowns)
+-- Main container
 local container = Instance.new("Frame", gui)
-container.Size = UDim2.new(0, 470, 0, 50) -- wider for two dropdowns
+container.Size = UDim2.new(0, 470, 0, 50)
 container.Position = UDim2.new(0.5, -235, 0.5, -25)
 container.BackgroundTransparency = 0.1
 container.BackgroundColor3 = Color3.fromRGB(0,120,255)
 container.BorderSizePixel = 0
 Instance.new("UICorner", container).CornerRadius = UDim.new(0,12)
 
--- Helper function to create dropdowns
+-- Helper function for dropdowns
 local function createDropdown(name, posX)
     local dropBtn = Instance.new("TextButton", container)
     dropBtn.Size = UDim2.new(0, 200, 0, 35)
     dropBtn.Position = UDim2.new(0, posX, 0, 7)
-    dropBtn.Text = name .. " ▼"
+    dropBtn.Text = name .. " ▶"
     dropBtn.Font = Enum.Font.SourceSans
     dropBtn.TextSize = 18
     dropBtn.BackgroundColor3 = Color3.fromRGB(0,90,200)
@@ -39,8 +39,8 @@ local function createDropdown(name, posX)
     Instance.new("UICorner", dropBtn).CornerRadius = UDim.new(0,8)
 
     local dropFrame = Instance.new("Frame", container)
-    dropFrame.Size = UDim2.new(0, 200, 0, 100)
-    dropFrame.Position = UDim2.new(0, posX + 205, 0, 7) -- expand to the right
+    dropFrame.Size = UDim2.new(0, 200, 0, 35) -- width stays same, height = 1 button
+    dropFrame.Position = UDim2.new(0, posX + 205, 0, 7) -- horizontal expansion
     dropFrame.BackgroundColor3 = Color3.fromRGB(0,90,200)
     dropFrame.BackgroundTransparency = 0.1
     dropFrame.BorderSizePixel = 0
@@ -49,7 +49,7 @@ local function createDropdown(name, posX)
 
     dropBtn.MouseButton1Click:Connect(function()
         dropFrame.Visible = not dropFrame.Visible
-        dropBtn.Text = name .. (dropFrame.Visible and " ▲" or " ▼")
+        dropBtn.Text = name .. (dropFrame.Visible and " ▼" or " ▶")
     end)
 
     return dropFrame
@@ -60,8 +60,8 @@ local mainFrame = createDropdown("Main", 10)
 
 -- Attack button
 local attackBtn = Instance.new("TextButton", mainFrame)
-attackBtn.Size = UDim2.new(1,-20,0,30)
-attackBtn.Position = UDim2.new(0,10,0,5)
+attackBtn.Size = UDim2.new(1,0,1,0)
+attackBtn.Position = UDim2.new(0,0,0,0)
 attackBtn.Text = "Attack: OFF"
 attackBtn.Font = Enum.Font.SourceSans
 attackBtn.TextSize = 16
@@ -89,8 +89,8 @@ end)
 
 -- AFK button
 local afkBtn = Instance.new("TextButton", mainFrame)
-afkBtn.Size = UDim2.new(1,-20,0,30)
-afkBtn.Position = UDim2.new(0,10,0,40)
+afkBtn.Size = UDim2.new(1,0,1,0)
+afkBtn.Position = UDim2.new(0,0,0,35)
 afkBtn.Text = "AFK: OFF"
 afkBtn.Font = Enum.Font.SourceSans
 afkBtn.TextSize = 16
@@ -120,11 +120,12 @@ afkBtn.MouseButton1Click:Connect(function()
 end)
 
 -- Farm dropdown
-local farmFrame = createDropdown("Farm", 225) -- moved to the right of Main
+local farmFrame = createDropdown("Farm", 225)
 
+-- Hit from anywhere button
 local farmBtn = Instance.new("TextButton", farmFrame)
-farmBtn.Size = UDim2.new(1,-20,0,30)
-farmBtn.Position = UDim2.new(0,10,0,5)
+farmBtn.Size = UDim2.new(1,0,1,0)
+farmBtn.Position = UDim2.new(0,0,0,0)
 farmBtn.Text = "Hit From Anywhere"
 farmBtn.Font = Enum.Font.SourceSans
 farmBtn.TextSize = 16
@@ -135,8 +136,56 @@ farmBtn.AutoButtonColor = true
 Instance.new("UICorner", farmBtn).CornerRadius = UDim.new(0,6)
 
 farmBtn.MouseButton1Click:Connect(function()
-    firesignal(HeroMoveToEnemyPos.OnClientEvent, {
-        attackTarget = "ae774160-697a-4774-aff3-0ead77618da3",
-        userId = player.UserId,
-        heroTagetPosInfos = {
-            ["ba0e5f73-ff79-4208-b3ba-13904c2ed514"] = Vector3.new(146, -52, -100),
+    if HeroMoveToEnemyPos then
+        task.spawn(function()
+            pcall(function()
+                firesignal(HeroMoveToEnemyPos.OnClientEvent, {
+                    attackTarget = "ae774160-697a-4774-aff3-0ead77618da3",
+                    userId = player.UserId,
+                    heroTagetPosInfos = {
+                        ["ba0e5f73-ff79-4208-b3ba-13904c2ed514"] = Vector3.new(146, -52, -100),
+                        ["f66029e9-6e7b-4cdb-8f5b-cb1bb592509c"] = Vector3.new(142, -52, -113),
+                        ["8ef2229d-c027-492a-998c-639fff40143d"] = Vector3.new(151, -52, -113),
+                        ["ce73c134-4f9f-4f53-b848-fbdb3d004304"] = Vector3.new(153, -52, -105),
+                        ["fb9a551d-2c2d-4d2d-8daf-4b77e0fea4af"] = Vector3.new(139, -52, -106)
+                    }
+                })
+            end)
+        end)
+    end
+end)
+
+-- Dragging
+local dragging, dragInput, dragStart, startPos=false,nil,nil,nil
+container.InputBegan:Connect(function(input)
+    if input.UserInputType==Enum.UserInputType.MouseButton1 then
+        dragging=true
+        dragStart=input.Position
+        startPos=container.Position
+        input.Changed:Connect(function()
+            if input.UserInputState==Enum.UserInputState.End then dragging=false end
+        end)
+    end
+end)
+container.InputChanged:Connect(function(input)
+    if input.UserInputType==Enum.UserInputType.MouseMovement then dragInput=input end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if input==dragInput and dragging then
+        local delta=input.Position-dragStart
+        container.Position=UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset+delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset+delta.Y
+        )
+    end
+end)
+
+-- Toggle UI with Left Control
+UserInputService.InputBegan:Connect(function(input,gp)
+    if gp then return end
+    if input.KeyCode==Enum.KeyCode.LeftControl then
+        gui.Enabled = not gui.Enabled
+    end
+end)
