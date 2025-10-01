@@ -1,7 +1,8 @@
 -- AutoPower + Anti AFK UI for Roblox
 -- Draggable GUI with horizontal dropdowns
--- Toggle GUI with Left Control
+-- Main and Farm dropdowns close together
 -- Blue background
+-- Toggle GUI with Left Control
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -48,18 +49,18 @@ gui.ResetOnSpawn = false
 gui.Enabled = true
 
 local container = Instance.new("Frame", gui)
-container.Size = UDim2.new(0, 220, 0, 50)
-container.Position = UDim2.new(0.5, -110, 0.5, -125)
+container.Size = UDim2.new(0, 450, 0, 100) -- width enough for horizontal buttons, height fits dropdowns
+container.Position = UDim2.new(0.5, -225, 0.5, -50)
 container.BackgroundColor3 = Color3.fromRGB(0,120,255)
 container.BackgroundTransparency = 0.1
 container.BorderSizePixel = 0
 Instance.new("UICorner", container).CornerRadius = UDim.new(0,10)
 
 -- Dropdown creator (horizontal)
-local function createHorizontalDropdown(title, buttons)
+local function createHorizontalDropdown(title, buttons, yOffset)
     local mainBtn = Instance.new("TextButton", container)
     mainBtn.Size = UDim2.new(0, 180, 0, 30)
-    mainBtn.Position = UDim2.new(0, 10, 0, 10 + #container:GetChildren()*35)
+    mainBtn.Position = UDim2.new(0, 10, 0, yOffset or 10)
     mainBtn.Text = title.." ▼"
     mainBtn.Font = Enum.Font.SourceSans
     mainBtn.TextSize = 18
@@ -105,16 +106,17 @@ local function createHorizontalDropdown(title, buttons)
         end
         mainBtn.Text = title.." "..(open and "▲" or "▼")
 
-        -- resize container width to fit buttons
-        local totalWidth = 220
+        -- resize container width to fit buttons if open
         if open then
-            totalWidth = mainBtn.Position.X.Offset + mainBtn.Size.X.Offset + #subButtons*(120 + 5) + 10
+            local totalWidth = mainBtn.Position.X.Offset + mainBtn.Size.X.Offset + #subButtons*(120 + 5) + 10
+            container.Size = UDim2.new(0, totalWidth, container.Size.Y.Scale, container.Size.Y.Offset)
+        else
+            container.Size = UDim2.new(0, 450, container.Size.Y.Scale, container.Size.Y.Offset)
         end
-        container.Size = UDim2.new(0, totalWidth, container.Size.Y.Scale, container.Size.Y.Offset)
     end)
 end
 
--- Create dropdowns
+-- Create dropdowns with fixed Y offsets
 createHorizontalDropdown("Main", {
     {Text="Attack: OFF", Func=function(btn)
         if autoPower then stopAttack(); btn.Text="Attack: OFF"
@@ -124,11 +126,11 @@ createHorizontalDropdown("Main", {
         if antiAFK then stopAFK(); btn.Text="AFK: OFF"
         else startAFK(); btn.Text="AFK: ON" end
     end}
-})
+}, 10)
 
 createHorizontalDropdown("Farm", {
-    -- future buttons
-})
+    -- future buttons here
+}, 50)
 
 -- Dragging
 local dragging, dragInput, dragStart, startPos = false,nil,nil,nil
@@ -143,7 +145,7 @@ container.InputBegan:Connect(function(input)
     end
 end)
 container.InputChanged:Connect(function(input)
-    if input.UserInputType==Enum.UserInputType.MouseMovement then dragInput=input end
+    if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput=input end
 end)
 UserInputService.InputChanged:Connect(function(input)
     if input==dragInput and dragging then
