@@ -26,7 +26,7 @@ container.BackgroundTransparency=0.2
 container.BorderSizePixel=0
 Instance.new("UICorner", container).CornerRadius=UDim.new(0,10)
 
--- Function to create horizontal dropdowns
+-- Dropdown function
 local function createDropdown(title, yOffset, buttons)
     local mainBtn = Instance.new("TextButton", container)
     mainBtn.Size=UDim2.new(0,120,0,30)
@@ -40,11 +40,10 @@ local function createDropdown(title, yOffset, buttons)
     mainBtn.AutoButtonColor=true
     Instance.new("UICorner", mainBtn).CornerRadius=UDim.new(0,6)
 
-    -- Create dropdown frame that expands to the right
     local dropFrame = Instance.new("Frame", container)
-    dropFrame.Size=UDim2.new(0,#buttons*130,0,#buttons*35)
-    dropFrame.Position=UDim2.new(0, mainBtn.Position.X.Offset + mainBtn.Size.X.Offset + 5, 0, mainBtn.Position.Y.Offset)
-    dropFrame.BackgroundColor3=Color3.fromRGB(0,90,200)
+    dropFrame.Size = UDim2.new(0, 150, 0, #buttons*35)
+    dropFrame.Position = UDim2.new(0, mainBtn.Position.X.Offset + mainBtn.Size.X.Offset + 5, 0, mainBtn.Position.Y.Offset)
+    dropFrame.BackgroundColor3 = Color3.fromRGB(0,90,200)
     dropFrame.BackgroundTransparency=0.1
     dropFrame.BorderSizePixel=0
     dropFrame.Visible=false
@@ -52,9 +51,9 @@ local function createDropdown(title, yOffset, buttons)
 
     for i, b in ipairs(buttons) do
         local btn = Instance.new("TextButton", dropFrame)
-        btn.Size=UDim2.new(0,120,0,30)
-        btn.Position=UDim2.new(0,(i-1)*125,0,0)
-        btn.Text=b.Text
+        btn.Size=UDim2.new(1, -10, 0, 30)
+        btn.Position=UDim2.new(0, 5, 0, (i-1)*35)
+        btn.Text = b.Text
         btn.Font=Enum.Font.SourceSans
         btn.TextSize=16
         btn.BackgroundColor3=Color3.fromRGB(0,120,255)
@@ -66,8 +65,8 @@ local function createDropdown(title, yOffset, buttons)
     end
 
     mainBtn.MouseButton1Click:Connect(function()
-        dropFrame.Visible=not dropFrame.Visible
-        mainBtn.Text=title.." "..(dropFrame.Visible and "▲" or "▼")
+        dropFrame.Visible = not dropFrame.Visible
+        mainBtn.Text = title.." "..(dropFrame.Visible and "▲" or "▼")
     end)
 end
 
@@ -81,7 +80,7 @@ createDropdown("Main",10,{
     end}
 })
 
--- Farm dropdown (empty for now)
+-- Farm dropdown
 createDropdown("Farm",60,{
     -- Add buttons later
 })
@@ -97,22 +96,20 @@ container.InputBegan:Connect(function(input)
     end
 end)
 container.InputChanged:Connect(function(input) if input.UserInputType==Enum.UserInputType.MouseMovement then dragInput=input end end)
-UserInputService.InputChanged:Connect(function(input)
-    if input==dragInput and dragging then
-        local delta=input.Position-dragStart
-        container.Position=UDim2.new(
-            startPos.X.Scale,
-            startPos.X.Offset+delta.X,
-            startPos.Y.Scale,
-            startPos.Y.Offset+delta.Y
-        )
-    end
+UserInputService.InputChanged:Connect(function(input) if input==dragInput and dragging then
+    local delta=input.Position-dragStart
+    container.Position=UDim2.new(
+        startPos.X.Scale,
+        startPos.X.Offset+delta.X,
+        startPos.Y.Scale,
+        startPos.Y.Offset+delta.Y
+    )
 end)
 
--- Toggle GUI with Left Control
+-- Toggle GUI
 UserInputService.InputBegan:Connect(function(input,gp)
     if gp then return end
     if input.KeyCode==Enum.KeyCode.LeftControl then
-        gui.Enabled=not gui.Enabled
+        gui.Enabled = not gui.Enabled
     end
 end)
