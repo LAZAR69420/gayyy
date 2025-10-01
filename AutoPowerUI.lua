@@ -1,4 +1,4 @@
--- Cute Hub style UI with Attack + AFK buttons + Farm dropdown
+-- Cute Hub style UI with Attack + AFK buttons + Farm dropdown fixed
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -15,7 +15,7 @@ gui.Enabled = true
 
 -- Main container
 local container = Instance.new("Frame", gui)
-container.Size = UDim2.new(0,500,0,50) -- wider to fit multiple dropdowns
+container.Size = UDim2.new(0,500,0,50)
 container.Position = UDim2.new(0.5,-250,0.5,-25)
 container.BackgroundColor3 = Color3.fromRGB(0,120,255)
 container.BackgroundTransparency = 0.1
@@ -36,9 +36,9 @@ local function createDropdown(name, posX)
     btn.AutoButtonColor = true
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0,8)
 
-    local frame = Instance.new("Frame", container)
+    local frame = Instance.new("Frame", gui) -- Parent to ScreenGui instead of container
     frame.Size = UDim2.new(0,200,0,70)
-    frame.Position = UDim2.new(0,posX + 205,0,0) -- to the right of the button
+    frame.Position = container.Position + UDim2.new(0,posX + 205,0,0) -- relative to container on screen
     frame.BackgroundColor3 = Color3.fromRGB(0,90,200)
     frame.BackgroundTransparency = 0.1
     frame.BorderSizePixel = 0
@@ -48,7 +48,7 @@ local function createDropdown(name, posX)
     return btn, frame
 end
 
--- Create Main dropdown
+-- Main dropdown
 local mainBtn, mainFrame = createDropdown("Main", 10)
 
 -- Attack button
@@ -116,7 +116,7 @@ mainBtn.MouseButton1Click:Connect(function()
     mainBtn.Text = "Main " .. (mainFrame.Visible and "▼" or "▶")
 end)
 
--- Create Farm dropdown (to the right of Main)
+-- Farm dropdown (to the right)
 local farmBtn, farmFrame = createDropdown("Farm", 225)
 
 -- Example button inside Farm dropdown
@@ -129,45 +129,4 @@ farmExampleBtn.TextSize = 16
 farmExampleBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
 farmExampleBtn.TextColor3 = Color3.fromRGB(255,255,255)
 farmExampleBtn.BorderSizePixel = 0
-farmExampleBtn.AutoButtonColor = true
-Instance.new("UICorner", farmExampleBtn).CornerRadius = UDim.new(0,6)
-
-farmBtn.MouseButton1Click:Connect(function()
-    farmFrame.Visible = not farmFrame.Visible
-    farmBtn.Text = "Farm " .. (farmFrame.Visible and "▼" or "▶")
-end)
-
--- Dragging logic
-local dragging, dragInput, dragStart, startPos=false,nil,nil,nil
-container.InputBegan:Connect(function(input)
-    if input.UserInputType==Enum.UserInputType.MouseButton1 then
-        dragging=true
-        dragStart=input.Position
-        startPos=container.Position
-        input.Changed:Connect(function()
-            if input.UserInputState==Enum.UserInputState.End then dragging=false end
-        end)
-    end
-end)
-container.InputChanged:Connect(function(input)
-    if input.UserInputType==Enum.UserInputType.MouseMovement then dragInput=input end
-end)
-UserInputService.InputChanged:Connect(function(input)
-    if input==dragInput and dragging then
-        local delta=input.Position-dragStart
-        container.Position=UDim2.new(
-            startPos.X.Scale,
-            startPos.X.Offset+delta.X,
-            startPos.Y.Scale,
-            startPos.Y.Offset+delta.Y
-        )
-    end
-end)
-
--- Toggle UI with Left Control
-UserInputService.InputBegan:Connect(function(input,gp)
-    if gp then return end
-    if input.KeyCode==Enum.KeyCode.LeftControl then
-        gui.Enabled = not gui.Enabled
-    end
-end)
+farmExamp
