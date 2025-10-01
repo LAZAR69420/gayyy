@@ -6,7 +6,7 @@ local player = Players.LocalPlayer
 local r = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PlayerClickAttack", 5)
 local autoPower, antiAFK = false, false
 
--- Load Rayfield Library using the new SiriusSoftwareLtd GitHub raw source
+-- Load Rayfield Library using the SiriusSoftwareLtd GitHub raw source
 local Rayfield
 local success, result = pcall(function()
     return loadstring(game:HttpGet('https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/main/source.lua', true))()
@@ -107,18 +107,41 @@ if MainTab then
                 antiAFK = Value
                 print("Anti AFK set to: " .. tostring(Value))
                 if Value then
-                    task.spawn(function()
-                        while antiAFK do
+                    local co = coroutine.create(function()
+                        while waitForCharacter() and antiAFK do
                             local char = player.Character
                             if char and char:FindFirstChild("Humanoid") then
-                                char.Humanoid:Move(Vector3.new(0, 0, 0))
-                                print("Anti AFK movement simulated")
+                                -- Try moving the character
+                                local success, err = pcall(function()
+                                    char.Humanoid:Move(Vector3.new(0, 0, 0))
+                                end)
+                                if success then
+                                    print("Anti AFK movement simulated with Move")
+                                else
+                                    warn("Failed to move character: " .. tostring(err))
+                                end
+                                -- Fallback: Attempt local input simulation (executor-dependent)
+                                if UserInputService then
+                                    local inputSuccess, inputErr = pcall(function()
+                                        -- Note: SimulateKeyEvent requires executor support
+                                        -- This is a placeholder; it may fail if not supported
+                                        UserInputService:SimulateKeyEvent(Enum.KeyCode.W, true, false, game)
+                                        task.wait(0.1)
+                                        UserInputService:SimulateKeyEvent(Enum.KeyCode.W, false, false, game)
+                                    end)
+                                    if inputSuccess then
+                                        print("Anti AFK input simulated")
+                                    else
+                                        warn("Input simulation failed: " .. tostring(inputErr) .. "; using Move only")
+                                    end
+                                end
                             else
                                 warn("Character or Humanoid not found for Anti AFK")
                             end
-                            task.wait(30)
+                            task.wait(5) -- Reduced to 5 seconds for more frequent checks
                         end
                     end)
+                    coroutine.resume(co)
                 end
             end
         })
@@ -126,6 +149,15 @@ if MainTab then
     if not success then
         warn("Failed to create AFKToggle: " .. tostring(err))
     end
+end
+
+-- Function to wait for character and handle respawn
+local function waitForCharacter()
+    local char = player.Character
+    while not char or not char:FindFirstChild("Humanoid") do
+        char = player.CharacterAdded:Wait()
+    end
+    return true
 end
 
 -- Toggle UI with Left Control using UserInputService
