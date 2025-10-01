@@ -1,47 +1,71 @@
--- Load the Cute Hub UI
-local hub = loadstring(game:HttpGet("https://raw.githubusercontent.com/quteeeee/etuchub/refs/heads/main/Cute%20Hub"))()
-
+-- Cute Hub style UI with Attack + AFK buttons
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local player = Players.LocalPlayer
 local r = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PlayerClickAttack")
 local autoPower, antiAFK = false, false
 
--- Wait for the hub container (replace "hubFrame" with actual container name if different)
-local gui = player:WaitForChild("PlayerGui")
-local container
-repeat
-    container = gui:FindFirstChild("hubFrame") -- check the real name inside Cute Hub
-    task.wait()
-until container
+-- ScreenGui
+local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+gui.Name = "CuteHubCustomUI"
+gui.ResetOnSpawn = false
+gui.Enabled = true
 
--- Helper function to create buttons
-local function createButton(text, posY, func)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0,150,0,30)
-    btn.Position = UDim2.new(0,10,0,posY)
-    btn.Text = text
-    btn.Parent = container
-    btn.Font = Enum.Font.SourceSans
-    btn.TextSize = 16
-    btn.BackgroundColor3 = Color3.fromRGB(0,120,255)
-    btn.TextColor3 = Color3.fromRGB(255,255,255)
-    btn.BorderSizePixel = 0
-    btn.AutoButtonColor = true
-    btn.MouseButton1Click:Connect(function() func(btn) end)
-    return btn
-end
+-- Main container
+local container = Instance.new("Frame", gui)
+container.Size = UDim2.new(0,250,0,50)
+container.Position = UDim2.new(0.5,-125,0.5,-25)
+container.BackgroundColor3 = Color3.fromRGB(0,120,255)
+container.BackgroundTransparency = 0.1
+container.BorderSizePixel = 0
+local uic = Instance.new("UICorner", container)
+uic.CornerRadius = UDim.new(0,12)
+
+-- Dropdown button
+local mainBtn = Instance.new("TextButton", container)
+mainBtn.Size = UDim2.new(0,200,0,35)
+mainBtn.Position = UDim2.new(0,10,0,7)
+mainBtn.Text = "Main ▼"
+mainBtn.Font = Enum.Font.SourceSans
+mainBtn.TextSize = 18
+mainBtn.BackgroundColor3 = Color3.fromRGB(0,90,200)
+mainBtn.TextColor3 = Color3.fromRGB(255,255,255)
+mainBtn.BorderSizePixel = 0
+mainBtn.AutoButtonColor = true
+Instance.new("UICorner", mainBtn).CornerRadius = UDim.new(0,8)
+
+-- Dropdown frame (to the right)
+local dropFrame = Instance.new("Frame", container)
+dropFrame.Size = UDim2.new(0,200,0,70)
+dropFrame.Position = UDim2.new(1,5,0,0) -- to the right
+dropFrame.BackgroundColor3 = Color3.fromRGB(0,90,200)
+dropFrame.BackgroundTransparency = 0.1
+dropFrame.BorderSizePixel = 0
+dropFrame.Visible = false
+Instance.new("UICorner", dropFrame).CornerRadius = UDim.new(0,8)
 
 -- Attack button
-local attackBtn = createButton("Attack: OFF", 50, function(btn)
+local attackBtn = Instance.new("TextButton", dropFrame)
+attackBtn.Size = UDim2.new(1,-20,0,30)
+attackBtn.Position = UDim2.new(0,10,0,5)
+attackBtn.Text = "Attack: OFF"
+attackBtn.Font = Enum.Font.SourceSans
+attackBtn.TextSize = 16
+attackBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
+attackBtn.TextColor3 = Color3.fromRGB(255,255,255)
+attackBtn.BorderSizePixel = 0
+attackBtn.AutoButtonColor = true
+Instance.new("UICorner", attackBtn).CornerRadius = UDim.new(0,6)
+
+attackBtn.MouseButton1Click:Connect(function()
     if autoPower then
         autoPower=false
-        btn.Text="Attack: OFF"
+        attackBtn.Text="Attack: OFF"
     else
         autoPower=true
-        btn.Text="Attack: ON"
+        attackBtn.Text="Attack: ON"
         task.spawn(function()
             while autoPower do
                 r:FireServer({})
@@ -51,14 +75,26 @@ local attackBtn = createButton("Attack: OFF", 50, function(btn)
     end
 end)
 
--- Anti-AFK button
-local afkBtn = createButton("AFK: OFF", 90, function(btn)
+-- AFK button
+local afkBtn = Instance.new("TextButton", dropFrame)
+afkBtn.Size = UDim2.new(1,-20,0,30)
+afkBtn.Position = UDim2.new(0,10,0,40)
+afkBtn.Text = "AFK: OFF"
+afkBtn.Font = Enum.Font.SourceSans
+afkBtn.TextSize = 16
+afkBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
+afkBtn.TextColor3 = Color3.fromRGB(255,255,255)
+afkBtn.BorderSizePixel = 0
+afkBtn.AutoButtonColor = true
+Instance.new("UICorner", afkBtn).CornerRadius = UDim.new(0,6)
+
+afkBtn.MouseButton1Click:Connect(function()
     if antiAFK then
         antiAFK=false
-        btn.Text="AFK: OFF"
+        afkBtn.Text="AFK: OFF"
     else
         antiAFK=true
-        btn.Text="AFK: ON"
+        afkBtn.Text="AFK: ON"
         task.spawn(function()
             while antiAFK do
                 local char = player.Character
@@ -71,7 +107,13 @@ local afkBtn = createButton("AFK: OFF", 90, function(btn)
     end
 end)
 
--- Dragging the hub
+-- Toggle dropdown
+mainBtn.MouseButton1Click:Connect(function()
+    dropFrame.Visible = not dropFrame.Visible
+    mainBtn.Text = "Main " .. (dropFrame.Visible and "▲" or "▼")
+end)
+
+-- Dragging
 local dragging, dragInput, dragStart, startPos=false,nil,nil,nil
 container.InputBegan:Connect(function(input)
     if input.UserInputType==Enum.UserInputType.MouseButton1 then
@@ -98,10 +140,10 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- Toggle GUI with Left Control
+-- Toggle UI with Left Control
 UserInputService.InputBegan:Connect(function(input,gp)
     if gp then return end
     if input.KeyCode==Enum.KeyCode.LeftControl then
-        container.Parent.Enabled = not container.Parent.Enabled
+        gui.Enabled = not gui.Enabled
     end
 end)
