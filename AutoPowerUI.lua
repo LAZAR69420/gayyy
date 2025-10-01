@@ -7,6 +7,7 @@ local r = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PlayerClickAtt
 
 local autoPower, antiAFK = false, false
 
+-- Functions
 local function startAttack()
     if autoPower then return end
     autoPower = true
@@ -34,12 +35,13 @@ local function startAFK()
 end
 local function stopAFK() antiAFK=false end
 
--- GUI Setup
+-- GUI
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 gui.Name = "atk_gui"
 gui.ResetOnSpawn = false
 gui.Enabled = true
 
+-- Background container
 local container = Instance.new("Frame", gui)
 container.Size = UDim2.new(0,200,0,50)
 container.Position = UDim2.new(0.5,-100,0.5,-125)
@@ -48,9 +50,9 @@ container.BackgroundTransparency = 0.1
 container.BorderSizePixel = 0
 Instance.new("UICorner", container).CornerRadius = UDim.new(0,10)
 
+-- Dropdown system
 local dropdowns = {}
 
--- Dropdown function
 local function createDropdown(name, buttons)
     local mainBtn = Instance.new("TextButton", container)
     mainBtn.Size = UDim2.new(0,150,0,30)
@@ -64,10 +66,10 @@ local function createDropdown(name, buttons)
     mainBtn.AutoButtonColor = true
     Instance.new("UICorner", mainBtn).CornerRadius = UDim.new(0,6)
 
-    -- Subframe to the right
-    local subFrame = Instance.new("Frame", container)
+    -- Subframe is child of gui (not container) so it shows correctly
+    local subFrame = Instance.new("Frame", gui)
     subFrame.Size = UDim2.new(0,150,#buttons*30)
-    subFrame.Position = UDim2.new(1,5,0,mainBtn.Position.Y.Offset) -- move to right
+    subFrame.Position = UDim2.new(0, container.Position.X.Offset + container.Size.X.Offset + 5, 0, container.Position.Y.Offset + mainBtn.Position.Y.Offset)
     subFrame.BackgroundColor3 = Color3.fromRGB(0,90,200)
     subFrame.BackgroundTransparency = 0.1
     subFrame.Visible = false
@@ -96,7 +98,7 @@ local function createDropdown(name, buttons)
     table.insert(dropdowns,{Main=mainBtn,Sub=subFrame})
 end
 
--- Example dropdowns
+-- Dropdowns
 createDropdown("Main", {
     {Text="Attack: OFF", Func=function(btn)
         if autoPower then stopAttack(); btn.Text="Attack: OFF" else startAttack(); btn.Text="Attack: ON" end
@@ -134,6 +136,15 @@ UserInputService.InputChanged:Connect(function(input)
             startPos.Y.Scale,
             startPos.Y.Offset + delta.Y
         )
+        -- Move subframes with container
+        for _,dd in pairs(dropdowns) do
+            dd.Sub.Position = UDim2.new(
+                0,
+                container.Position.X.Offset + container.Size.X.Offset + 5,
+                0,
+                container.Position.Y.Offset + dd.Main.Position.Y.Offset
+            )
+        end
     end
 end)
 
