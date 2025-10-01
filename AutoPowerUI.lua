@@ -1,4 +1,4 @@
--- Cute Hub style UI with vertical dropdown buttons
+-- Cute Hub-style UI with Attack + AFK buttons and Farm dropdown
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -15,20 +15,19 @@ gui.Enabled = true
 
 -- Main container
 local container = Instance.new("Frame", gui)
-container.Size = UDim2.new(0, 250, 0, 50)
-container.Position = UDim2.new(0.5, -125, 0.5, -25)
+container.Size = UDim2.new(0,250,0,50)
+container.Position = UDim2.new(0.5,-125,0.5,-25)
 container.BackgroundColor3 = Color3.fromRGB(0,120,255)
 container.BackgroundTransparency = 0.1
 container.BorderSizePixel = 0
 Instance.new("UICorner", container).CornerRadius = UDim.new(0,12)
 
--- Function to create dropdown (vertical buttons)
+-- Helper function to create dropdowns
 local function createDropdown(name, buttons, yPos)
-    -- Dropdown button
     local mainBtn = Instance.new("TextButton", container)
     mainBtn.Size = UDim2.new(0,200,0,35)
     mainBtn.Position = UDim2.new(0,10,0,yPos)
-    mainBtn.Text = name .. " ▼"
+    mainBtn.Text = name.." ▼"
     mainBtn.Font = Enum.Font.SourceSans
     mainBtn.TextSize = 18
     mainBtn.BackgroundColor3 = Color3.fromRGB(0,90,200)
@@ -37,21 +36,21 @@ local function createDropdown(name, buttons, yPos)
     mainBtn.AutoButtonColor = true
     Instance.new("UICorner", mainBtn).CornerRadius = UDim.new(0,8)
 
-    -- Dropdown frame (vertical below button)
+    -- Dropdown frame to the right
     local dropFrame = Instance.new("Frame", container)
     dropFrame.Size = UDim2.new(0,200,0,#buttons*35)
-    dropFrame.Position = UDim2.new(0,10,0,yPos+35)
+    dropFrame.Position = UDim2.new(1,5,0,yPos)
     dropFrame.BackgroundColor3 = Color3.fromRGB(0,90,200)
     dropFrame.BackgroundTransparency = 0.1
     dropFrame.BorderSizePixel = 0
     dropFrame.Visible = false
     Instance.new("UICorner", dropFrame).CornerRadius = UDim.new(0,8)
 
-    -- Buttons inside dropdown (vertical)
-    for i, b in ipairs(buttons) do
+    -- Buttons inside dropdown
+    for i,b in ipairs(buttons) do
         local btn = Instance.new("TextButton", dropFrame)
-        btn.Size = UDim2.new(1, -10, 0, 30)
-        btn.Position = UDim2.new(0, 5, 0, (i-1)*35 + 2)
+        btn.Size = UDim2.new(1,-20,0,30)
+        btn.Position = UDim2.new(0,10,0,(i-1)*35)
         btn.Text = b.Text
         btn.Font = Enum.Font.SourceSans
         btn.TextSize = 16
@@ -60,9 +59,12 @@ local function createDropdown(name, buttons, yPos)
         btn.BorderSizePixel = 0
         btn.AutoButtonColor = true
         Instance.new("UICorner", btn).CornerRadius = UDim.new(0,6)
+
         btn.MouseButton1Click:Connect(function()
-            local newText = b.Func()
-            if newText then btn.Text = newText end
+            local newText = b.Func(btn)
+            if newText then
+                btn.Text = newText
+            end
         end)
     end
 
@@ -73,9 +75,9 @@ local function createDropdown(name, buttons, yPos)
     end)
 end
 
--- Main dropdown
+-- Create Main dropdown
 createDropdown("Main", {
-    {Text = "Attack: OFF", Func = function()
+    {Text="Attack: OFF", Func=function()
         if autoPower then autoPower=false return "Attack: OFF"
         else autoPower=true
             task.spawn(function()
@@ -87,7 +89,7 @@ createDropdown("Main", {
             return "Attack: ON"
         end
     end},
-    {Text = "AFK: OFF", Func = function()
+    {Text="AFK: OFF", Func=function()
         if antiAFK then antiAFK=false return "AFK: OFF"
         else antiAFK=true
             task.spawn(function()
@@ -104,9 +106,9 @@ createDropdown("Main", {
     end}
 }, 7)
 
--- Farm dropdown (example)
+-- Create Farm dropdown (below Main)
 createDropdown("Farm", {
-    {Text = "Example Btn", Func = function() return "Clicked!" end}
+    {Text="Coming Soon", Func=function() return "Coming Soon" end}
 }, 52)
 
 -- Dragging
