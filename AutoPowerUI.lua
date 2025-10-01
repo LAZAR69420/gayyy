@@ -7,7 +7,6 @@ local r = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PlayerClickAtt
 
 local autoPower, antiAFK = false, false
 
--- Attack / AFK functions
 local function startAttack()
     if autoPower then return end
     autoPower = true
@@ -49,12 +48,13 @@ container.BackgroundTransparency = 0.1
 container.BorderSizePixel = 0
 Instance.new("UICorner", container).CornerRadius = UDim.new(0,10)
 
--- Dropdown creation function
 local dropdowns = {}
+
+-- Dropdown function
 local function createDropdown(name, buttons)
     local mainBtn = Instance.new("TextButton", container)
-    mainBtn.Size = UDim2.new(1,-20,0,30)
-    mainBtn.Position = UDim2.new(0,10,0,10 + #dropdowns*35)
+    mainBtn.Size = UDim2.new(0,150,0,30)
+    mainBtn.Position = UDim2.new(0,10,0,#dropdowns*35)
     mainBtn.Text = name.." ▶"
     mainBtn.Font = Enum.Font.SourceSans
     mainBtn.TextSize = 18
@@ -64,14 +64,16 @@ local function createDropdown(name, buttons)
     mainBtn.AutoButtonColor = true
     Instance.new("UICorner", mainBtn).CornerRadius = UDim.new(0,6)
 
+    -- Subframe to the right
     local subFrame = Instance.new("Frame", container)
     subFrame.Size = UDim2.new(0,150,#buttons*30)
-    subFrame.Position = UDim2.new(1,0,0,mainBtn.Position.Y.Offset)
+    subFrame.Position = UDim2.new(1,5,0,mainBtn.Position.Y.Offset) -- move to right
     subFrame.BackgroundColor3 = Color3.fromRGB(0,90,200)
     subFrame.BackgroundTransparency = 0.1
     subFrame.Visible = false
+    Instance.new("UICorner", subFrame).CornerRadius = UDim.new(0,6)
 
-    for i, b in ipairs(buttons) do
+    for i,b in ipairs(buttons) do
         local btn = Instance.new("TextButton", subFrame)
         btn.Size = UDim2.new(1,0,0,30)
         btn.Position = UDim2.new(0,0,(i-1)*30,0)
@@ -91,10 +93,10 @@ local function createDropdown(name, buttons)
         mainBtn.Text = name.." "..(subFrame.Visible and "▼" or "▶")
     end)
 
-    table.insert(dropdowns, {Main = mainBtn, Sub = subFrame})
+    table.insert(dropdowns,{Main=mainBtn,Sub=subFrame})
 end
 
--- Create dropdowns
+-- Example dropdowns
 createDropdown("Main", {
     {Text="Attack: OFF", Func=function(btn)
         if autoPower then stopAttack(); btn.Text="Attack: OFF" else startAttack(); btn.Text="Attack: ON" end
@@ -104,9 +106,8 @@ createDropdown("Main", {
     end}
 })
 
--- Example: add more dropdowns for future buttons
 createDropdown("Farm", {
-    -- Add buttons here later
+    -- future buttons
 })
 
 -- Dragging
@@ -136,7 +137,7 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- Toggle GUI with Left Control
+-- Toggle GUI
 UserInputService.InputBegan:Connect(function(input,gp)
     if gp then return end
     if input.KeyCode==Enum.KeyCode.LeftControl then
