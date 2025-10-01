@@ -1,8 +1,4 @@
--- CuteHub Style UI with Main + Farm Dropdowns (Right Expansion)
--- Author: YourName
--- GitHub: https://github.com/YourGitHubUsername/YourRepoName
-
--- Services
+-- CuteHub Right-Expanding Dropdown UI
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -11,9 +7,6 @@ local player = Players.LocalPlayer
 local r = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PlayerClickAttack")
 local autoPower, antiAFK = false, false
 
--- =======================
--- ScreenGui
--- =======================
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 gui.Name = "CuteHubCustomUI"
 gui.ResetOnSpawn = false
@@ -27,56 +20,55 @@ container.BackgroundTransparency = 0.1
 container.BorderSizePixel = 0
 Instance.new("UICorner", container).CornerRadius = UDim.new(0,12)
 
--- =======================
--- Dropdown Creation Function (Right Expansion)
--- =======================
-local function createDropdown(parent, title, posY, buttons)
-    local btn = Instance.new("TextButton", parent)
-    btn.Size = UDim2.new(0,200,0,35)
-    btn.Position = UDim2.new(0,10,0,posY)
-    btn.Text = title .. " ▼"
-    btn.Font = Enum.Font.SourceSans
-    btn.TextSize = 18
-    btn.BackgroundColor3 = Color3.fromRGB(0,90,200)
-    btn.TextColor3 = Color3.fromRGB(255,255,255)
-    btn.BorderSizePixel = 0
-    btn.AutoButtonColor = true
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,8)
+-- Function to create dropdown that expands RIGHT
+local function createDropdown(title, posY, buttonData)
+    -- Main button
+    local mainBtn = Instance.new("TextButton", container)
+    mainBtn.Size = UDim2.new(0,200,0,35)
+    mainBtn.Position = UDim2.new(0,10,0,posY)
+    mainBtn.Text = title.." ▼"
+    mainBtn.Font = Enum.Font.SourceSans
+    mainBtn.TextSize = 18
+    mainBtn.BackgroundColor3 = Color3.fromRGB(0,90,200)
+    mainBtn.TextColor3 = Color3.fromRGB(255,255,255)
+    mainBtn.BorderSizePixel = 0
+    mainBtn.AutoButtonColor = true
+    Instance.new("UICorner", mainBtn).CornerRadius = UDim.new(0,8)
 
-    local frame = Instance.new("Frame", parent)
-    frame.Size = UDim2.new(0,150,#buttons*35,0) -- width 150
-    frame.Position = UDim2.new(0,220,posY) -- to the right of main button
-    frame.BackgroundColor3 = Color3.fromRGB(0,90,200)
-    frame.BackgroundTransparency = 0.1
-    frame.BorderSizePixel = 0
-    frame.Visible = false
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0,8)
+    -- Dropdown frame (to the right of main button)
+    local dropFrame = Instance.new("Frame", container)
+    dropFrame.Size = UDim2.new(0,150,#buttonData*35 + 10)
+    dropFrame.Position = UDim2.new(0, mainBtn.Position.X.Offset + mainBtn.Size.X.Offset + 5, 0, posY)
+    dropFrame.BackgroundColor3 = Color3.fromRGB(0,90,200)
+    dropFrame.BackgroundTransparency = 0.1
+    dropFrame.BorderSizePixel = 0
+    dropFrame.Visible = false
+    Instance.new("UICorner", dropFrame).CornerRadius = UDim.new(0,8)
 
-    for i,b in ipairs(buttons) do
-        local bBtn = Instance.new("TextButton", frame)
-        bBtn.Size = UDim2.new(1,-20,0,30)
-        bBtn.Position = UDim2.new(0,10,0,(i-1)*35 + 5)
-        bBtn.Text = b.Text
-        bBtn.Font = Enum.Font.SourceSans
-        bBtn.TextSize = 16
-        bBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
-        bBtn.TextColor3 = Color3.fromRGB(255,255,255)
-        bBtn.BorderSizePixel = 0
-        bBtn.AutoButtonColor = true
-        Instance.new("UICorner", bBtn).CornerRadius = UDim.new(0,6)
-        bBtn.MouseButton1Click:Connect(b.Func)
+    -- Buttons inside dropdown
+    for i,b in ipairs(buttonData) do
+        local btn = Instance.new("TextButton", dropFrame)
+        btn.Size = UDim2.new(1,-20,0,30)
+        btn.Position = UDim2.new(0,10,0,(i-1)*35 + 5)
+        btn.Text = b.Text
+        btn.Font = Enum.Font.SourceSans
+        btn.TextSize = 16
+        btn.BackgroundColor3 = Color3.fromRGB(0,120,255)
+        btn.TextColor3 = Color3.fromRGB(255,255,255)
+        btn.BorderSizePixel = 0
+        btn.AutoButtonColor = true
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0,6)
+        btn.MouseButton1Click:Connect(b.Func)
     end
 
-    btn.MouseButton1Click:Connect(function()
-        frame.Visible = not frame.Visible
-        btn.Text = title .. (frame.Visible and " ▲" or " ▼")
+    mainBtn.MouseButton1Click:Connect(function()
+        dropFrame.Visible = not dropFrame.Visible
+        mainBtn.Text = title .. (dropFrame.Visible and " ▲" or " ▼")
     end)
 end
 
--- =======================
--- Main Dropdown
--- =======================
-createDropdown(container, "Main", 7, {
+-- Main dropdown
+createDropdown("Main", 7, {
     {Text="Attack: OFF", Func=function()
         if autoPower then
             autoPower=false
@@ -110,18 +102,14 @@ createDropdown(container, "Main", 7, {
     end}
 })
 
--- =======================
--- Farm Dropdown (Below Main)
--- =======================
-createDropdown(container, "Farm", 52, {  -- positioned below Main
+-- Farm dropdown below Main
+createDropdown("Farm", 52, {
     {Text="Farm Action", Func=function()
-        print("Farm button clicked!") -- placeholder
+        print("Farm clicked!")
     end}
 })
 
--- =======================
--- Dragging
--- =======================
+-- Dragging logic
 local dragging, dragInput, dragStart, startPos=false,nil,nil,nil
 container.InputBegan:Connect(function(input)
     if input.UserInputType==Enum.UserInputType.MouseButton1 then
@@ -148,9 +136,7 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- =======================
 -- Toggle UI with Left Control
--- =======================
 UserInputService.InputBegan:Connect(function(input,gp)
     if gp then return end
     if input.KeyCode==Enum.KeyCode.LeftControl then
