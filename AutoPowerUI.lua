@@ -7,7 +7,7 @@ local r = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PlayerClickAtt
 
 local autoPower, antiAFK = false, false
 
--- Attack and AFK Functions
+-- Functions
 local function startAttack()
     if autoPower then return end
     autoPower = true
@@ -35,7 +35,7 @@ local function startAFK()
 end
 local function stopAFK() antiAFK=false end
 
--- GUI Setup
+-- GUI
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 gui.Name = "atk_gui"
 gui.ResetOnSpawn = false
@@ -49,7 +49,7 @@ container.BackgroundTransparency = 0.1
 container.BorderSizePixel = 0
 Instance.new("UICorner", container).CornerRadius = UDim.new(0,10)
 
--- Create a dropdown inside container
+-- Dropdown function
 local function createDropdown(title, buttons)
     local mainBtn = Instance.new("TextButton", container)
     mainBtn.Size = UDim2.new(0,180,0,30)
@@ -89,7 +89,7 @@ local function createDropdown(title, buttons)
         end
         mainBtn.Text = title.." "..(open and "▲" or "▼")
 
-        -- Resize container to fit buttons
+        -- Resize container
         local totalHeight = 50
         for _, child in ipairs(container:GetChildren()) do
             if child:IsA("TextButton") and child.Visible then
@@ -100,7 +100,7 @@ local function createDropdown(title, buttons)
     end)
 end
 
--- Main dropdown
+-- Create dropdowns
 createDropdown("Main", {
     {Text="Attack: OFF", Func=function(btn)
         if autoPower then stopAttack(); btn.Text="Attack: OFF" else startAttack(); btn.Text="Attack: ON" end
@@ -110,9 +110,8 @@ createDropdown("Main", {
     end}
 })
 
--- Farm dropdown (future)
 createDropdown("Farm", {
-    -- add buttons later
+    -- future buttons
 })
 
 -- Dragging
@@ -123,12 +122,12 @@ container.InputBegan:Connect(function(input)
         dragStart = input.Position
         startPos = container.Position
         input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then dragging=false end
+            if input.UserInputState==Enum.UserInputState.End then dragging=false end
         end)
     end
 end)
 container.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput=input end
+    if input.UserInputType==Enum.UserInputType.MouseMovement then dragInput=input end
 end)
 UserInputService.InputChanged:Connect(function(input)
     if input==dragInput and dragging then
