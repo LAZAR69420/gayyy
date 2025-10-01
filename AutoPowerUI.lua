@@ -2,7 +2,7 @@
 -- Draggable UI with Dropdowns
 -- Toggle GUI with Left Control
 -- Blue background
--- Fixed: AFK button visible
+-- AFK button visible
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -56,44 +56,39 @@ gui.ResetOnSpawn = false
 gui.Enabled = true
 
 local container = Instance.new("Frame", gui)
-container.Size = UDim2.new(0,220,0,40)
-container.Position = UDim2.new(0.5,-110,0.5,-20)
-container.BackgroundColor3 = Color3.fromRGB(0,120,255) -- bright blue background
+container.Size = UDim2.new(0,240,0,60)
+container.Position = UDim2.new(0.5,-120,0.5,-30)
+container.BackgroundColor3 = Color3.fromRGB(0,120,255) -- main blue background
 container.BorderSizePixel = 0
 
 local uicorner = Instance.new("UICorner", container)
-uicorner.CornerRadius = UDim.new(0,10)
+uicorner.CornerRadius = UDim.new(0,12)
 
 -- Dropdown handling
 local allDropdowns = {}
 
 local function createDropdown(name, buttons)
-    local frame = Instance.new("Frame", container)
-    frame.Size = UDim2.new(0,200,0,30)
-    frame.Position = UDim2.new(0,0,#container:GetChildren()*35,0)
-    frame.BackgroundColor3 = Color3.fromRGB(0,90,200)
-    frame.BorderSizePixel = 0
-    local frameCorner = Instance.new("UICorner", frame)
-    frameCorner.CornerRadius = UDim.new(0,8)
-
-    local drop = Instance.new("TextButton", frame)
-    drop.Size = UDim2.new(1,0,1,0)
-    drop.Text = name .. " ▶"
-    drop.Font = Enum.Font.SourceSans
-    drop.TextSize = 18
-    drop.BackgroundTransparency = 1
-    drop.TextColor3 = Color3.fromRGB(255,255,255)
-
-    local dropFrame = Instance.new("Frame", frame)
-    dropFrame.Size = UDim2.new(0,200,0,#buttons*30)
-    dropFrame.Position = UDim2.new(1,5,0,0)
-    dropFrame.BackgroundColor3 = Color3.fromRGB(0,100,220)
-    dropFrame.BorderSizePixel = 0
-    dropFrame.Visible = true -- default visible so AFK button shows
-    local dropCorner = Instance.new("UICorner", dropFrame)
+    local dropButton = Instance.new("TextButton", container)
+    dropButton.Size = UDim2.new(0,220,0,30)
+    dropButton.Position = UDim2.new(0,10,#container:GetChildren()*35 - 30,0)
+    dropButton.Text = name .. " ▶"
+    dropButton.Font = Enum.Font.SourceSans
+    dropButton.TextSize = 18
+    dropButton.BackgroundColor3 = Color3.fromRGB(0,90,200)
+    dropButton.TextColor3 = Color3.fromRGB(255,255,255)
+    dropButton.BorderSizePixel = 0
+    dropButton.AutoButtonColor = true
+    local dropCorner = Instance.new("UICorner", dropButton)
     dropCorner.CornerRadius = UDim.new(0,8)
 
-    table.insert(allDropdowns, {Button=drop, Frame=dropFrame, Name=name})
+    local dropFrame = Instance.new("Frame", container)
+    dropFrame.Size = UDim2.new(0,150,#buttons*30)
+    dropFrame.Position = UDim2.new(0,220,0,dropButton.Position.Y.Offset)
+    dropFrame.BackgroundColor3 = Color3.fromRGB(0,100,220)
+    dropFrame.BorderSizePixel = 0
+    dropFrame.Visible = false
+    local dropCorner2 = Instance.new("UICorner", dropFrame)
+    dropCorner2.CornerRadius = UDim.new(0,8)
 
     for i,b in pairs(buttons) do
         local btn = Instance.new("TextButton", dropFrame)
@@ -103,11 +98,11 @@ local function createDropdown(name, buttons)
         btn.Font = Enum.Font.SourceSans
         btn.TextSize = 16
         btn.BackgroundColor3 = Color3.fromRGB(0,120,255)
-        btn.BorderSizePixel = 0
         btn.TextColor3 = Color3.fromRGB(255,255,255)
+        btn.BorderSizePixel = 0
+        btn.AutoButtonColor = true
         local btnCorner = Instance.new("UICorner", btn)
         btnCorner.CornerRadius = UDim.new(0,6)
-        btn.AutoButtonColor = true
 
         btn.MouseButton1Click:Connect(function()
             local newText = b.Func(btn)
@@ -115,18 +110,20 @@ local function createDropdown(name, buttons)
         end)
     end
 
-    drop.MouseButton1Click:Connect(function()
+    dropButton.MouseButton1Click:Connect(function()
         local isOpen = dropFrame.Visible
-        for _, dd in ipairs(allDropdowns) do
+        for _, dd in pairs(allDropdowns) do
             dd.Frame.Visible = false
             dd.Button.Text = dd.Name .. " ▶"
         end
         dropFrame.Visible = not isOpen
-        drop.Text = name .. (dropFrame.Visible and " ▼" or " ▶")
+        dropButton.Text = name .. (dropFrame.Visible and " ▼" or " ▶")
     end)
+
+    table.insert(allDropdowns, {Button=dropButton, Frame=dropFrame, Name=name})
 end
 
--- Create Main Dropdown with both buttons
+-- Main Dropdown
 createDropdown("Main", {
     {Text="Attack: OFF", Func=function()
         if autoPower then stopAttack() return "Attack: OFF"
@@ -138,41 +135,8 @@ createDropdown("Main", {
     end}
 })
 
-createDropdown("Farm", {
-    -- add more buttons later
-})
+-- Farm Dropdown (empty for now)
+createDropdown("Farm", {})
 
 -- Dragging
-local dragging, dragInput, dragStart, startPos = false,nil,nil,nil
-container.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = container.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then dragging = false end
-        end)
-    end
-end)
-container.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput = input end
-end)
-UserInputService.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        local delta = input.Position - dragStart
-        container.Position = UDim2.new(
-            startPos.X.Scale,
-            startPos.X.Offset + delta.X,
-            startPos.Y.Scale,
-            startPos.Y.Offset + delta.Y
-        )
-    end
-end)
-
--- Toggle GUI with Left Control
-UserInputService.InputBegan:Connect(function(input,gp)
-    if gp then return end
-    if input.KeyCode==Enum.KeyCode.LeftControl then
-        gui.Enabled = not gui.Enabled
-    end
-end)
+local dragging, dragInp
