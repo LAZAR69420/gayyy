@@ -1,10 +1,12 @@
--- Cute Hub style UI with Attack + AFK buttons
+-- Services
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local player = Players.LocalPlayer
 local r = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PlayerClickAttack")
+local HeroMoveToEnemyPos = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("HeroMoveToEnemyPos")
+
 local autoPower, antiAFK = false, false
 
 -- ScreenGui
@@ -20,34 +22,44 @@ container.Position = UDim2.new(0.5,-125,0.5,-25)
 container.BackgroundColor3 = Color3.fromRGB(0,120,255)
 container.BackgroundTransparency = 0.1
 container.BorderSizePixel = 0
-local uic = Instance.new("UICorner", container)
-uic.CornerRadius = UDim.new(0,12)
+Instance.new("UICorner", container).CornerRadius = UDim.new(0,12)
 
--- Dropdown button
-local mainBtn = Instance.new("TextButton", container)
-mainBtn.Size = UDim2.new(0,200,0,35)
-mainBtn.Position = UDim2.new(0,10,0,7)
-mainBtn.Text = "Main ▼"
-mainBtn.Font = Enum.Font.SourceSans
-mainBtn.TextSize = 18
-mainBtn.BackgroundColor3 = Color3.fromRGB(0,90,200)
-mainBtn.TextColor3 = Color3.fromRGB(255,255,255)
-mainBtn.BorderSizePixel = 0
-mainBtn.AutoButtonColor = true
-Instance.new("UICorner", mainBtn).CornerRadius = UDim.new(0,8)
+-- Helper function to create dropdowns
+local function createDropdown(name, posY)
+    local dropBtn = Instance.new("TextButton", container)
+    dropBtn.Size = UDim2.new(0,200,0,35)
+    dropBtn.Position = UDim2.new(0,10,0,posY)
+    dropBtn.Text = name .. " ▼"
+    dropBtn.Font = Enum.Font.SourceSans
+    dropBtn.TextSize = 18
+    dropBtn.BackgroundColor3 = Color3.fromRGB(0,90,200)
+    dropBtn.TextColor3 = Color3.fromRGB(255,255,255)
+    dropBtn.BorderSizePixel = 0
+    dropBtn.AutoButtonColor = true
+    Instance.new("UICorner", dropBtn).CornerRadius = UDim.new(0,8)
 
--- Dropdown frame (to the right)
-local dropFrame = Instance.new("Frame", container)
-dropFrame.Size = UDim2.new(0,200,0,70)
-dropFrame.Position = UDim2.new(1,5,0,0) -- to the right
-dropFrame.BackgroundColor3 = Color3.fromRGB(0,90,200)
-dropFrame.BackgroundTransparency = 0.1
-dropFrame.BorderSizePixel = 0
-dropFrame.Visible = false
-Instance.new("UICorner", dropFrame).CornerRadius = UDim.new(0,8)
+    local dropFrame = Instance.new("Frame", container)
+    dropFrame.Size = UDim2.new(0,200,0,100) -- adjust height later
+    dropFrame.Position = UDim2.new(1,5,0,posY)
+    dropFrame.BackgroundColor3 = Color3.fromRGB(0,90,200)
+    dropFrame.BackgroundTransparency = 0.1
+    dropFrame.BorderSizePixel = 0
+    dropFrame.Visible = false
+    Instance.new("UICorner", dropFrame).CornerRadius = UDim.new(0,8)
+
+    dropBtn.MouseButton1Click:Connect(function()
+        dropFrame.Visible = not dropFrame.Visible
+        dropBtn.Text = name .. (dropFrame.Visible and " ▲" or " ▼")
+    end)
+
+    return dropFrame
+end
+
+-- Main dropdown
+local mainFrame = createDropdown("Main", 7)
 
 -- Attack button
-local attackBtn = Instance.new("TextButton", dropFrame)
+local attackBtn = Instance.new("TextButton", mainFrame)
 attackBtn.Size = UDim2.new(1,-20,0,30)
 attackBtn.Position = UDim2.new(0,10,0,5)
 attackBtn.Text = "Attack: OFF"
@@ -76,7 +88,7 @@ attackBtn.MouseButton1Click:Connect(function()
 end)
 
 -- AFK button
-local afkBtn = Instance.new("TextButton", dropFrame)
+local afkBtn = Instance.new("TextButton", mainFrame)
 afkBtn.Size = UDim2.new(1,-20,0,30)
 afkBtn.Position = UDim2.new(0,10,0,40)
 afkBtn.Text = "AFK: OFF"
@@ -107,10 +119,34 @@ afkBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Toggle dropdown
-mainBtn.MouseButton1Click:Connect(function()
-    dropFrame.Visible = not dropFrame.Visible
-    mainBtn.Text = "Main " .. (dropFrame.Visible and "▲" or "▼")
+-- Farm dropdown
+local farmFrame = createDropdown("Farm", 50)
+
+local farmBtn = Instance.new("TextButton", farmFrame)
+farmBtn.Size = UDim2.new(1,-20,0,30)
+farmBtn.Position = UDim2.new(0,10,0,5)
+farmBtn.Text = "Hit From Anywhere"
+farmBtn.Font = Enum.Font.SourceSans
+farmBtn.TextSize = 16
+farmBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
+farmBtn.TextColor3 = Color3.fromRGB(255,255,255)
+farmBtn.BorderSizePixel = 0
+farmBtn.AutoButtonColor = true
+Instance.new("UICorner", farmBtn).CornerRadius = UDim.new(0,6)
+
+farmBtn.MouseButton1Click:Connect(function()
+    -- Example target data
+    firesignal(HeroMoveToEnemyPos.OnClientEvent, {
+        attackTarget = "ae774160-697a-4774-aff3-0ead77618da3",
+        userId = player.UserId,
+        heroTagetPosInfos = {
+            ["ba0e5f73-ff79-4208-b3ba-13904c2ed514"] = Vector3.new(146, -52, -100),
+            ["f66029e9-6e7b-4cdb-8f5b-cb1bb592509c"] = Vector3.new(142, -52, -113),
+            ["8ef2229d-c027-492a-998c-639fff40143d"] = Vector3.new(151, -52, -113),
+            ["ce73c134-4f9f-4f53-b848-fbdb3d004304"] = Vector3.new(153, -52, -105),
+            ["fb9a551d-2c2d-4d2d-8daf-4b77e0fea4af"] = Vector3.new(139, -52, -106)
+        }
+    })
 end)
 
 -- Dragging
