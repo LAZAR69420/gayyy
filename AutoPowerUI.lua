@@ -1,9 +1,10 @@
--- Cute Hub style UI with Main and Farm dropdowns
+-- Cute Hub style UI with Attack + AFK + Farm HeroSkillHarm button
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local player = Players.LocalPlayer
+local r = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PlayerClickAttack")
 local autoPower, antiAFK = false, false
 
 -- ScreenGui
@@ -14,114 +15,156 @@ gui.Enabled = true
 
 -- Main container
 local container = Instance.new("Frame", gui)
-container.Size = UDim2.new(0,250,0,100)
-container.Position = UDim2.new(0.5,-125,0.5,-50)
+container.Size = UDim2.new(0,250,0,50)
+container.Position = UDim2.new(0.5,-125,0.5,-25)
 container.BackgroundColor3 = Color3.fromRGB(0,120,255)
 container.BackgroundTransparency = 0.1
 container.BorderSizePixel = 0
 Instance.new("UICorner", container).CornerRadius = UDim.new(0,12)
 
--- Function to create dropdown
-local function createDropdown(parent, name, width, buttons, yOffset)
-    local btn = Instance.new("TextButton", parent)
-    btn.Size = UDim2.new(0,width,0,35)
-    btn.Position = UDim2.new(0,10,0,yOffset)
-    btn.Text = name .. " ▼"
-    btn.Font = Enum.Font.SourceSans
-    btn.TextSize = 18
-    btn.BackgroundColor3 = Color3.fromRGB(0,90,200)
-    btn.TextColor3 = Color3.fromRGB(255,255,255)
-    btn.BorderSizePixel = 0
-    btn.AutoButtonColor = true
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,8)
+-- Main Dropdown button
+local mainBtn = Instance.new("TextButton", container)
+mainBtn.Size = UDim2.new(0,200,0,35)
+mainBtn.Position = UDim2.new(0,10,0,7)
+mainBtn.Text = "Main ▼"
+mainBtn.Font = Enum.Font.SourceSans
+mainBtn.TextSize = 18
+mainBtn.BackgroundColor3 = Color3.fromRGB(0,90,200)
+mainBtn.TextColor3 = Color3.fromRGB(255,255,255)
+mainBtn.BorderSizePixel = 0
+mainBtn.AutoButtonColor = true
+Instance.new("UICorner", mainBtn).CornerRadius = UDim.new(0,8)
 
-    local dropFrame = Instance.new("Frame", parent)
-    dropFrame.Size = UDim2.new(0,width,0,#buttons*35)
-    dropFrame.Position = UDim2.new(1,5,0,yOffset)
-    dropFrame.BackgroundColor3 = Color3.fromRGB(0,90,200)
-    dropFrame.BackgroundTransparency = 0.1
-    dropFrame.BorderSizePixel = 0
-    dropFrame.Visible = false
-    Instance.new("UICorner", dropFrame).CornerRadius = UDim.new(0,8)
+-- Main dropdown frame (to the right)
+local mainDrop = Instance.new("Frame", container)
+mainDrop.Size = UDim2.new(0,200,0,70)
+mainDrop.Position = UDim2.new(1,5,0,0)
+mainDrop.BackgroundColor3 = Color3.fromRGB(0,90,200)
+mainDrop.BackgroundTransparency = 0.1
+mainDrop.BorderSizePixel = 0
+mainDrop.Visible = false
+Instance.new("UICorner", mainDrop).CornerRadius = UDim.new(0,8)
 
-    for i,b in pairs(buttons) do
-        local subBtn = Instance.new("TextButton", dropFrame)
-        subBtn.Size = UDim2.new(1,-20,0,30)
-        subBtn.Position = UDim2.new(0,10,0,(i-1)*35 + 5)
-        subBtn.Text = b.Text
-        subBtn.Font = Enum.Font.SourceSans
-        subBtn.TextSize = 16
-        subBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
-        subBtn.TextColor3 = Color3.fromRGB(255,255,255)
-        subBtn.BorderSizePixel = 0
-        subBtn.AutoButtonColor = true
-        Instance.new("UICorner", subBtn).CornerRadius = UDim.new(0,6)
+-- Attack button
+local attackBtn = Instance.new("TextButton", mainDrop)
+attackBtn.Size = UDim2.new(1,-20,0,30)
+attackBtn.Position = UDim2.new(0,10,0,5)
+attackBtn.Text = "Attack: OFF"
+attackBtn.Font = Enum.Font.SourceSans
+attackBtn.TextSize = 16
+attackBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
+attackBtn.TextColor3 = Color3.fromRGB(255,255,255)
+attackBtn.BorderSizePixel = 0
+attackBtn.AutoButtonColor = true
+Instance.new("UICorner", attackBtn).CornerRadius = UDim.new(0,6)
 
-        subBtn.MouseButton1Click:Connect(function()
-            if b.Func then b.Func(subBtn) end
+attackBtn.MouseButton1Click:Connect(function()
+    if autoPower then
+        autoPower=false
+        attackBtn.Text="Attack: OFF"
+    else
+        autoPower=true
+        attackBtn.Text="Attack: ON"
+        task.spawn(function()
+            while autoPower do
+                r:FireServer({})
+                task.wait()
+            end
         end)
     end
+end)
 
-    btn.MouseButton1Click:Connect(function()
-        dropFrame.Visible = not dropFrame.Visible
-        btn.Text = name .. (dropFrame.Visible and " ▲" or " ▼")
-    end)
+-- AFK button
+local afkBtn = Instance.new("TextButton", mainDrop)
+afkBtn.Size = UDim2.new(1,-20,0,30)
+afkBtn.Position = UDim2.new(0,10,0,40)
+afkBtn.Text = "AFK: OFF"
+afkBtn.Font = Enum.Font.SourceSans
+afkBtn.TextSize = 16
+afkBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
+afkBtn.TextColor3 = Color3.fromRGB(255,255,255)
+afkBtn.BorderSizePixel = 0
+afkBtn.AutoButtonColor = true
+Instance.new("UICorner", afkBtn).CornerRadius = UDim.new(0,6)
 
-    return {Button=btn, Frame=dropFrame}
-end
-
--- Main dropdown at top
-createDropdown(container, "Main", 200, {
-    {Text="Attack: OFF", Func=function(subBtn)
-        local r = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PlayerClickAttack")
-        if autoPower then
-            autoPower=false
-            subBtn.Text="Attack: OFF"
-        else
-            autoPower=true
-            subBtn.Text="Attack: ON"
-            task.spawn(function()
-                while autoPower do
-                    r:FireServer({})
-                    task.wait()
+afkBtn.MouseButton1Click:Connect(function()
+    if antiAFK then
+        antiAFK=false
+        afkBtn.Text="AFK: OFF"
+    else
+        antiAFK=true
+        afkBtn.Text="AFK: ON"
+        task.spawn(function()
+            while antiAFK do
+                local char = player.Character
+                if char and char:FindFirstChild("Humanoid") then
+                    char.Humanoid:Move(Vector3.new(0,0,0))
                 end
-            end)
-        end
-    end},
-    {Text="AFK: OFF", Func=function(subBtn)
-        if antiAFK then
-            antiAFK=false
-            subBtn.Text="AFK: OFF"
-        else
-            antiAFK=true
-            subBtn.Text="AFK: ON"
-            task.spawn(function()
-                while antiAFK do
-                    local char = player.Character
-                    if char and char:FindFirstChild("Humanoid") then
-                        char.Humanoid:Move(Vector3.new(0,0,0))
-                    end
-                    task.wait(30)
-                end
-            end)
-        end
-    end}
-}, 5)
+                task.wait(30)
+            end
+        end)
+    end
+end)
 
--- Farm dropdown below Main
-createDropdown(container, "Farm", 200, {
-    {Text="Hero Skill", Func=function()
-        local HeroSkillHarm = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("HeroSkillHarm")
-        HeroSkillHarm:FireServer({
-            harmIndex = 100000,
-            isSkill = false,
-            heroGuid = "c1ce73a8-7298-4628-8dc6-71acf61e8256",
-            skillId = 200001
-        })
-    end}
-}, 50) -- yOffset is below Main button
+-- Toggle Main dropdown
+mainBtn.MouseButton1Click:Connect(function()
+    mainDrop.Visible = not mainDrop.Visible
+    mainBtn.Text = "Main " .. (mainDrop.Visible and "▲" or "▼")
+end)
 
--- Dragging logic
+-- Farm dropdown button
+local farmBtn = Instance.new("TextButton", container)
+farmBtn.Size = UDim2.new(0,200,0,35)
+farmBtn.Position = UDim2.new(0,10,0,50)
+farmBtn.Text = "Farm ▼"
+farmBtn.Font = Enum.Font.SourceSans
+farmBtn.TextSize = 18
+farmBtn.BackgroundColor3 = Color3.fromRGB(0,90,200)
+farmBtn.TextColor3 = Color3.fromRGB(255,255,255)
+farmBtn.BorderSizePixel = 0
+farmBtn.AutoButtonColor = true
+Instance.new("UICorner", farmBtn).CornerRadius = UDim.new(0,8)
+
+-- Farm dropdown frame (to the right)
+local farmDrop = Instance.new("Frame", container)
+farmDrop.Size = UDim2.new(0,200,0,40)
+farmDrop.Position = UDim2.new(1,5,0,50)
+farmDrop.BackgroundColor3 = Color3.fromRGB(0,90,200)
+farmDrop.BackgroundTransparency = 0.1
+farmDrop.BorderSizePixel = 0
+farmDrop.Visible = false
+Instance.new("UICorner", farmDrop).CornerRadius = UDim.new(0,8)
+
+-- HeroSkillHarm button
+local heroBtn = Instance.new("TextButton", farmDrop)
+heroBtn.Size = UDim2.new(1,-20,0,30)
+heroBtn.Position = UDim2.new(0,10,0,5)
+heroBtn.Text = "Hero Skill Harm"
+heroBtn.Font = Enum.Font.SourceSans
+heroBtn.TextSize = 16
+heroBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
+heroBtn.TextColor3 = Color3.fromRGB(255,255,255)
+heroBtn.BorderSizePixel = 0
+heroBtn.AutoButtonColor = true
+Instance.new("UICorner", heroBtn).CornerRadius = UDim.new(0,6)
+
+heroBtn.MouseButton1Click:Connect(function()
+    local HeroSkillHarm = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("HeroSkillHarm")
+    HeroSkillHarm:FireServer({
+        harmIndex = 9007199254740991,
+        isSkill = false,
+        heroGuid = "c1ce73a8-7298-4628-8dc6-71acf61e8256",
+        skillId = 200001
+    })
+end)
+
+-- Toggle Farm dropdown
+farmBtn.MouseButton1Click:Connect(function()
+    farmDrop.Visible = not farmDrop.Visible
+    farmBtn.Text = "Farm " .. (farmDrop.Visible and "▲" or "▼")
+end)
+
+-- Dragging
 local dragging, dragInput, dragStart, startPos=false,nil,nil,nil
 container.InputBegan:Connect(function(input)
     if input.UserInputType==Enum.UserInputType.MouseButton1 then
