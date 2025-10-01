@@ -24,10 +24,8 @@ local function startAttack()
         end
     end)
 end
-
 local function stopAttack() autoPower = false end
 
--- Anti AFK Functions
 local function startAFK()
     if antiAFK then return end
     antiAFK = true
@@ -41,7 +39,6 @@ local function startAFK()
         end
     end)
 end
-
 local function stopAFK() antiAFK = false end
 
 -- GUI Setup
@@ -72,15 +69,21 @@ local function createHorizontalDropdown(title, buttons)
     mainBtn.AutoButtonColor = true
     Instance.new("UICorner", mainBtn).CornerRadius = UDim.new(0,6)
 
-    local subButtons = {}
-    local spacing = 5
-    local btnWidth, btnHeight = 120, 30
+    -- Dropdown frame
+    local dropFrame = Instance.new("Frame", container)
+    dropFrame.Size = UDim2.new(0,0,0,30)
+    dropFrame.Position = UDim2.new(0, mainBtn.Position.X.Offset + mainBtn.Size.X.Offset, 0, mainBtn.Position.Y.Offset)
+    dropFrame.BackgroundTransparency = 1
 
+    local layout = Instance.new("UIListLayout", dropFrame)
+    layout.FillDirection = Enum.FillDirection.Horizontal
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Padding = UDim.new(0,5)
+
+    local subButtons = {}
     for i, b in ipairs(buttons) do
-        local btn = Instance.new("TextButton", container)
-        btn.Size = UDim2.new(0, btnWidth, 0, btnHeight)
-        btn.Position = UDim2.new(0, mainBtn.Position.X.Offset + mainBtn.Size.X.Offset + (i-1)*(btnWidth + spacing),
-                                 0, mainBtn.Position.Y.Offset)
+        local btn = Instance.new("TextButton", dropFrame)
+        btn.Size = UDim2.new(0,120,0,30)
         btn.Text = b.Text
         btn.Font = Enum.Font.SourceSans
         btn.TextSize = 16
@@ -102,12 +105,12 @@ local function createHorizontalDropdown(title, buttons)
         end
         mainBtn.Text = title.." "..(open and "▲" or "▼")
 
-        -- resize container width to include expanded buttons
-        local maxWidth = 220
+        -- resize container width to fit buttons
+        local totalWidth = 220
         if open then
-            maxWidth = mainBtn.Position.X.Offset + mainBtn.Size.X.Offset + #subButtons * (btnWidth + spacing) + 10
+            totalWidth = mainBtn.Position.X.Offset + mainBtn.Size.X.Offset + #subButtons*(120 + 5) + 10
         end
-        container.Size = UDim2.new(0, maxWidth, container.Size.Y.Scale, container.Size.Y.Offset)
+        container.Size = UDim2.new(0, totalWidth, container.Size.Y.Scale, container.Size.Y.Offset)
     end)
 end
 
