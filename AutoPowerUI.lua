@@ -10,8 +10,10 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 local r = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PlayerClickAttack")
 
+-- States
 local autoPower, antiAFK = false, false
 
+-- Attack Functions
 local function startAttack()
     if autoPower then return end
     autoPower = true
@@ -23,8 +25,9 @@ local function startAttack()
     end)
 end
 
-local function stopAttack() autoPower=false end
+local function stopAttack() autoPower = false end
 
+-- Anti AFK Functions
 local function startAFK()
     if antiAFK then return end
     antiAFK = true
@@ -39,7 +42,7 @@ local function startAFK()
     end)
 end
 
-local function stopAFK() antiAFK=false end
+local function stopAFK() antiAFK = false end
 
 -- GUI Setup
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
@@ -56,10 +59,10 @@ container.BorderSizePixel = 0
 Instance.new("UICorner", container).CornerRadius = UDim.new(0,10)
 
 -- Dropdown creator (horizontal)
-local function createDropdown(title, buttons)
+local function createHorizontalDropdown(title, buttons)
     local mainBtn = Instance.new("TextButton", container)
     mainBtn.Size = UDim2.new(0, 180, 0, 30)
-    mainBtn.Position = UDim2.new(0, 10, 0, #container:GetChildren()*35 - 35)
+    mainBtn.Position = UDim2.new(0, 10, 0, 10 + #container:GetChildren()*35)
     mainBtn.Text = title.." ▼"
     mainBtn.Font = Enum.Font.SourceSans
     mainBtn.TextSize = 18
@@ -99,19 +102,17 @@ local function createDropdown(title, buttons)
         end
         mainBtn.Text = title.." "..(open and "▲" or "▼")
 
-        -- resize container width dynamically
+        -- resize container width to include expanded buttons
         local maxWidth = 220
-        for _, child in ipairs(container:GetChildren()) do
-            if child:IsA("TextButton") and child.Visible then
-                maxWidth = math.max(maxWidth, child.Position.X.Offset + child.Size.X.Offset + 10)
-            end
+        if open then
+            maxWidth = mainBtn.Position.X.Offset + mainBtn.Size.X.Offset + #subButtons * (btnWidth + spacing) + 10
         end
-        container.Size = UDim2.new(container.Size.X.Scale, maxWidth, container.Size.Y.Scale, 50)
+        container.Size = UDim2.new(0, maxWidth, container.Size.Y.Scale, container.Size.Y.Offset)
     end)
 end
 
 -- Create dropdowns
-createDropdown("Main", {
+createHorizontalDropdown("Main", {
     {Text="Attack: OFF", Func=function(btn)
         if autoPower then stopAttack(); btn.Text="Attack: OFF"
         else startAttack(); btn.Text="Attack: ON" end
@@ -122,14 +123,14 @@ createDropdown("Main", {
     end}
 })
 
-createDropdown("Farm", {
+createHorizontalDropdown("Farm", {
     -- future buttons
 })
 
 -- Dragging
 local dragging, dragInput, dragStart, startPos = false,nil,nil,nil
 container.InputBegan:Connect(function(input)
-    if input.UserInputType==Enum.UserInputType.MouseButton1 then
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = true
         dragStart = input.Position
         startPos = container.Position
