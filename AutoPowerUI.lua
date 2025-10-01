@@ -1,4 +1,4 @@
--- Cute Hub style UI with Attack + AFK buttons
+-- Cute Hub style UI with Attack + AFK buttons + Farm dropdown
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -15,39 +15,44 @@ gui.Enabled = true
 
 -- Main container
 local container = Instance.new("Frame", gui)
-container.Size = UDim2.new(0,250,0,50)
-container.Position = UDim2.new(0.5,-125,0.5,-25)
+container.Size = UDim2.new(0,500,0,50) -- wider to fit multiple dropdowns
+container.Position = UDim2.new(0.5,-250,0.5,-25)
 container.BackgroundColor3 = Color3.fromRGB(0,120,255)
 container.BackgroundTransparency = 0.1
 container.BorderSizePixel = 0
-local uic = Instance.new("UICorner", container)
-uic.CornerRadius = UDim.new(0,12)
+Instance.new("UICorner", container).CornerRadius = UDim.new(0,12)
 
--- Dropdown button
-local mainBtn = Instance.new("TextButton", container)
-mainBtn.Size = UDim2.new(0,200,0,35)
-mainBtn.Position = UDim2.new(0,10,0,7)
-mainBtn.Text = "Main ▼"
-mainBtn.Font = Enum.Font.SourceSans
-mainBtn.TextSize = 18
-mainBtn.BackgroundColor3 = Color3.fromRGB(0,90,200)
-mainBtn.TextColor3 = Color3.fromRGB(255,255,255)
-mainBtn.BorderSizePixel = 0
-mainBtn.AutoButtonColor = true
-Instance.new("UICorner", mainBtn).CornerRadius = UDim.new(0,8)
+-- Function to create a dropdown
+local function createDropdown(name, posX)
+    local btn = Instance.new("TextButton", container)
+    btn.Size = UDim2.new(0,200,0,35)
+    btn.Position = UDim2.new(0,posX,0,7)
+    btn.Text = name .. " ▶"
+    btn.Font = Enum.Font.SourceSans
+    btn.TextSize = 18
+    btn.BackgroundColor3 = Color3.fromRGB(0,90,200)
+    btn.TextColor3 = Color3.fromRGB(255,255,255)
+    btn.BorderSizePixel = 0
+    btn.AutoButtonColor = true
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0,8)
 
--- Dropdown frame (to the right)
-local dropFrame = Instance.new("Frame", container)
-dropFrame.Size = UDim2.new(0,200,0,70)
-dropFrame.Position = UDim2.new(1,5,0,0) -- to the right
-dropFrame.BackgroundColor3 = Color3.fromRGB(0,90,200)
-dropFrame.BackgroundTransparency = 0.1
-dropFrame.BorderSizePixel = 0
-dropFrame.Visible = false
-Instance.new("UICorner", dropFrame).CornerRadius = UDim.new(0,8)
+    local frame = Instance.new("Frame", container)
+    frame.Size = UDim2.new(0,200,0,70)
+    frame.Position = UDim2.new(0,posX + 205,0,0) -- to the right of the button
+    frame.BackgroundColor3 = Color3.fromRGB(0,90,200)
+    frame.BackgroundTransparency = 0.1
+    frame.BorderSizePixel = 0
+    frame.Visible = false
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0,8)
+
+    return btn, frame
+end
+
+-- Create Main dropdown
+local mainBtn, mainFrame = createDropdown("Main", 10)
 
 -- Attack button
-local attackBtn = Instance.new("TextButton", dropFrame)
+local attackBtn = Instance.new("TextButton", mainFrame)
 attackBtn.Size = UDim2.new(1,-20,0,30)
 attackBtn.Position = UDim2.new(0,10,0,5)
 attackBtn.Text = "Attack: OFF"
@@ -58,7 +63,6 @@ attackBtn.TextColor3 = Color3.fromRGB(255,255,255)
 attackBtn.BorderSizePixel = 0
 attackBtn.AutoButtonColor = true
 Instance.new("UICorner", attackBtn).CornerRadius = UDim.new(0,6)
-
 attackBtn.MouseButton1Click:Connect(function()
     if autoPower then
         autoPower=false
@@ -76,7 +80,7 @@ attackBtn.MouseButton1Click:Connect(function()
 end)
 
 -- AFK button
-local afkBtn = Instance.new("TextButton", dropFrame)
+local afkBtn = Instance.new("TextButton", mainFrame)
 afkBtn.Size = UDim2.new(1,-20,0,30)
 afkBtn.Position = UDim2.new(0,10,0,40)
 afkBtn.Text = "AFK: OFF"
@@ -87,7 +91,6 @@ afkBtn.TextColor3 = Color3.fromRGB(255,255,255)
 afkBtn.BorderSizePixel = 0
 afkBtn.AutoButtonColor = true
 Instance.new("UICorner", afkBtn).CornerRadius = UDim.new(0,6)
-
 afkBtn.MouseButton1Click:Connect(function()
     if antiAFK then
         antiAFK=false
@@ -107,13 +110,34 @@ afkBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Toggle dropdown
+-- Main dropdown toggle
 mainBtn.MouseButton1Click:Connect(function()
-    dropFrame.Visible = not dropFrame.Visible
-    mainBtn.Text = "Main " .. (dropFrame.Visible and "▲" or "▼")
+    mainFrame.Visible = not mainFrame.Visible
+    mainBtn.Text = "Main " .. (mainFrame.Visible and "▼" or "▶")
 end)
 
--- Dragging
+-- Create Farm dropdown (to the right of Main)
+local farmBtn, farmFrame = createDropdown("Farm", 225)
+
+-- Example button inside Farm dropdown
+local farmExampleBtn = Instance.new("TextButton", farmFrame)
+farmExampleBtn.Size = UDim2.new(1,-20,0,30)
+farmExampleBtn.Position = UDim2.new(0,10,0,5)
+farmExampleBtn.Text = "Farm Action"
+farmExampleBtn.Font = Enum.Font.SourceSans
+farmExampleBtn.TextSize = 16
+farmExampleBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
+farmExampleBtn.TextColor3 = Color3.fromRGB(255,255,255)
+farmExampleBtn.BorderSizePixel = 0
+farmExampleBtn.AutoButtonColor = true
+Instance.new("UICorner", farmExampleBtn).CornerRadius = UDim.new(0,6)
+
+farmBtn.MouseButton1Click:Connect(function()
+    farmFrame.Visible = not farmFrame.Visible
+    farmBtn.Text = "Farm " .. (farmFrame.Visible and "▼" or "▶")
+end)
+
+-- Dragging logic
 local dragging, dragInput, dragStart, startPos=false,nil,nil,nil
 container.InputBegan:Connect(function(input)
     if input.UserInputType==Enum.UserInputType.MouseButton1 then
