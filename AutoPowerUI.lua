@@ -1,3 +1,8 @@
+-- Roblox Auto Power + Anti AFK UI
+-- Draggable GUI with Dropdowns
+-- Toggle GUI with Left Control
+-- Designed for GitHub repository use
+
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -5,8 +10,10 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 local r = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PlayerClickAttack")
 
+-- States
 local autoPower, antiAFK = false, false
 
+-- Attack Functions
 local function startAttack()
     if autoPower then return end
     autoPower = true
@@ -22,6 +29,7 @@ local function stopAttack()
     autoPower = false
 end
 
+-- Anti AFK Functions
 local function startAFK()
     if antiAFK then return end
     antiAFK = true
@@ -40,94 +48,101 @@ local function stopAFK()
     antiAFK = false
 end
 
--- GUI
+-- GUI Setup
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 gui.Name = "atk_gui"
 gui.ResetOnSpawn = false
 gui.Enabled = true
 
 local container = Instance.new("Frame", gui)
-container.Size = UDim2.new(0,250,0,120)
-container.Position = UDim2.new(0.5,-125,0.5,-60)
-container.BackgroundColor3 = Color3.fromRGB(0,120,255)
-container.BorderSizePixel = 0
-local uicorner = Instance.new("UICorner", container)
-uicorner.CornerRadius = UDim.new(0,12)
+container.Size = UDim2.new(0,200,0,0)
+container.Position = UDim2.new(0.5,-100,0.5,-125)
+container.BackgroundTransparency = 1
 
--- Main Dropdown Button
-local mainBtn = Instance.new("TextButton", container)
-mainBtn.Size = UDim2.new(1,-20,0,30)
-mainBtn.Position = UDim2.new(0,10,0,10)
-mainBtn.Text = "Main ▼"
-mainBtn.Font = Enum.Font.SourceSans
-mainBtn.TextSize = 18
-mainBtn.BackgroundColor3 = Color3.fromRGB(0,90,200)
-mainBtn.TextColor3 = Color3.fromRGB(255,255,255)
-mainBtn.BorderSizePixel = 0
-mainBtn.AutoButtonColor = true
-local mainCorner = Instance.new("UICorner", mainBtn)
-mainCorner.CornerRadius = UDim.new(0,6)
+-- Dropdown Creation Function
+local function createDropdown(name, buttons)
+    local frame = Instance.new("Frame", container)
+    frame.Size = UDim2.new(1,0,0,30)
+    frame.Position = UDim2.new(0,0,0,#container:GetChildren() * 35)
+    frame.BackgroundTransparency = 0.35
+    frame.BorderSizePixel = 0
+    frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
 
--- Sub-buttons inside dropdown
-local attackBtn = Instance.new("TextButton", container)
-attackBtn.Size = UDim2.new(1,-40,0,30)
-attackBtn.Position = UDim2.new(0,20,0,50)
-attackBtn.Text = "Attack: OFF"
-attackBtn.Font = Enum.Font.SourceSans
-attackBtn.TextSize = 16
-attackBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
-attackBtn.TextColor3 = Color3.fromRGB(255,255,255)
-attackBtn.BorderSizePixel = 0
-local attackCorner = Instance.new("UICorner", attackBtn)
-attackCorner.CornerRadius = UDim.new(0,6)
-attackBtn.Visible = false
+    local drop = Instance.new("TextButton", frame)
+    drop.Size = UDim2.new(1,0,1,0)
+    drop.Text = name .. " ▼"
+    drop.Font = Enum.Font.SourceSans
+    drop.TextSize = 18
+    drop.BackgroundTransparency = 0.1
+    drop.AutoButtonColor = true
 
-local afkBtn = Instance.new("TextButton", container)
-afkBtn.Size = UDim2.new(1,-40,0,30)
-afkBtn.Position = UDim2.new(0,20,0,90)
-afkBtn.Text = "AFK: OFF"
-afkBtn.Font = Enum.Font.SourceSans
-afkBtn.TextSize = 16
-afkBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
-afkBtn.TextColor3 = Color3.fromRGB(255,255,255)
-afkBtn.BorderSizePixel = 0
-local afkCorner = Instance.new("UICorner", afkBtn)
-afkCorner.CornerRadius = UDim.new(0,6)
-afkBtn.Visible = false
+    local dropFrame = Instance.new("Frame", frame)
+    dropFrame.Size = UDim2.new(1,0,#buttons * 30,0)
+    dropFrame.Position = UDim2.new(0,0,1,0)
+    dropFrame.BackgroundTransparency = 1
+    dropFrame.Visible = false
 
--- Toggle dropdown visibility
-mainBtn.MouseButton1Click:Connect(function()
-    attackBtn.Visible = not attackBtn.Visible
-    afkBtn.Visible = not afkBtn.Visible
-    mainBtn.Text = "Main " .. (attackBtn.Visible and "▲" or "▼")
-end)
+    for i, b in pairs(buttons) do
+        local btn = Instance.new("TextButton", dropFrame)
+        btn.Size = UDim2.new(1,0,0,30)
+        btn.Position = UDim2.new(0,0,(i-1) * 30,0)
+        btn.Text = b.Text
+        btn.Font = Enum.Font.SourceSans
+        btn.TextSize = 16
+        btn.BackgroundTransparency = 0.1
+        btn.AutoButtonColor = true
+        btn.MouseButton1Click:Connect(b.Func)
+    end
 
--- Button functions
-attackBtn.MouseButton1Click:Connect(function()
-    if autoPower then stopAttack(); attackBtn.Text="Attack: OFF"
-    else startAttack(); attackBtn.Text="Attack: ON" end
-end)
+    drop.MouseButton1Click:Connect(function()
+        dropFrame.Visible = not dropFrame.Visible
+    end)
+end
 
-afkBtn.MouseButton1Click:Connect(function()
-    if antiAFK then stopAFK(); afkBtn.Text="AFK: OFF"
-    else startAFK(); afkBtn.Text="AFK: ON" end
-end)
+-- Dropdowns
+createDropdown("Main", {
+    {Text = "Attack: OFF", Func = function()
+        if autoPower then
+            stopAttack()
+        else
+            startAttack()
+        end
+    end},
+    {Text = "AFK: OFF", Func = function()
+        if antiAFK then
+            stopAFK()
+        else
+            startAFK()
+        end
+    end}
+})
+
+createDropdown("Farm", {
+    -- Add more buttons here later
+})
 
 -- Dragging
-local dragging, dragInput, dragStart, startPos = false,nil,nil,nil
+local dragging, dragInput, dragStart, startPos = false, nil, nil, nil
+
 container.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = true
         dragStart = input.Position
         startPos = container.Position
         input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
         end)
     end
 end)
+
 container.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput = input end
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
 end)
+
 UserInputService.InputChanged:Connect(function(input)
     if input == dragInput and dragging then
         local delta = input.Position - dragStart
@@ -140,10 +155,10 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
--- Toggle GUI with Left Control
-UserInputService.InputBegan:Connect(function(input,gp)
+-- Toggle GUI with LeftControl
+UserInputService.InputBegan:Connect(function(input, gp)
     if gp then return end
-    if input.KeyCode==Enum.KeyCode.LeftControl then
+    if input.KeyCode == Enum.KeyCode.LeftControl then
         gui.Enabled = not gui.Enabled
     end
 end)
