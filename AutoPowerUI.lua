@@ -41,9 +41,8 @@ gui.Name = "atk_gui"
 gui.ResetOnSpawn = false
 gui.Enabled = true
 
--- Background container
 local container = Instance.new("Frame", gui)
-container.Size = UDim2.new(0,200,0,50)
+container.Size = UDim2.new(0,200,0,50) -- start height small
 container.Position = UDim2.new(0.5,-100,0.5,-125)
 container.BackgroundColor3 = Color3.fromRGB(0,120,255)
 container.BackgroundTransparency = 0.1
@@ -56,7 +55,7 @@ local dropdowns = {}
 local function createDropdown(name, buttons)
     local mainBtn = Instance.new("TextButton", container)
     mainBtn.Size = UDim2.new(0,150,0,30)
-    mainBtn.Position = UDim2.new(0,10,0,#dropdowns*35)
+    mainBtn.Position = UDim2.new(0,10,0,#container:GetChildren()*35-35)
     mainBtn.Text = name.." ▶"
     mainBtn.Font = Enum.Font.SourceSans
     mainBtn.TextSize = 18
@@ -66,10 +65,9 @@ local function createDropdown(name, buttons)
     mainBtn.AutoButtonColor = true
     Instance.new("UICorner", mainBtn).CornerRadius = UDim.new(0,6)
 
-    -- Subframe is child of gui (not container) so it shows correctly
-    local subFrame = Instance.new("Frame", gui)
+    local subFrame = Instance.new("Frame", container)
     subFrame.Size = UDim2.new(0,150,#buttons*30)
-    subFrame.Position = UDim2.new(0, container.Position.X.Offset + container.Size.X.Offset + 5, 0, container.Position.Y.Offset + mainBtn.Position.Y.Offset)
+    subFrame.Position = UDim2.new(1,5,0,mainBtn.Position.Y.Offset)
     subFrame.BackgroundColor3 = Color3.fromRGB(0,90,200)
     subFrame.BackgroundTransparency = 0.1
     subFrame.Visible = false
@@ -93,6 +91,17 @@ local function createDropdown(name, buttons)
     mainBtn.MouseButton1Click:Connect(function()
         subFrame.Visible = not subFrame.Visible
         mainBtn.Text = name.." "..(subFrame.Visible and "▼" or "▶")
+
+        -- Resize container height
+        local openHeight = 50
+        for _,child in ipairs(container:GetChildren()) do
+            if child:IsA("TextButton") then
+                openHeight = openHeight + child.Size.Y.Offset
+            elseif child:IsA("Frame") and child.Visible then
+                openHeight = openHeight + child.Size.Y.Offset
+            end
+        end
+        container.Size = UDim2.new(container.Size.X.Scale, container.Size.X.Offset, 0, openHeight)
     end)
 
     table.insert(dropdowns,{Main=mainBtn,Sub=subFrame})
@@ -136,15 +145,6 @@ UserInputService.InputChanged:Connect(function(input)
             startPos.Y.Scale,
             startPos.Y.Offset + delta.Y
         )
-        -- Move subframes with container
-        for _,dd in pairs(dropdowns) do
-            dd.Sub.Position = UDim2.new(
-                0,
-                container.Position.X.Offset + container.Size.X.Offset + 5,
-                0,
-                container.Position.Y.Offset + dd.Main.Position.Y.Offset
-            )
-        end
     end
 end)
 
