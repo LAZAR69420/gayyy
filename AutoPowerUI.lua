@@ -1,6 +1,3 @@
--- Roblox Auto Power + Anti AFK UI
--- Draggable, toggleable, blue background, visible AFK button
-
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -8,10 +5,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 local r = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PlayerClickAttack")
 
--- States
 local autoPower, antiAFK = false, false
 
--- Attack Functions
 local function startAttack()
     if autoPower then return end
     autoPower = true
@@ -27,7 +22,6 @@ local function stopAttack()
     autoPower = false
 end
 
--- Anti AFK Functions
 local function startAFK()
     if antiAFK then return end
     antiAFK = true
@@ -46,94 +40,78 @@ local function stopAFK()
     antiAFK = false
 end
 
--- GUI Setup
+-- GUI
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 gui.Name = "atk_gui"
 gui.ResetOnSpawn = false
 gui.Enabled = true
 
 local container = Instance.new("Frame", gui)
-container.Size = UDim2.new(0,240,0,40)
-container.Position = UDim2.new(0.5,-120,0.5,-20)
+container.Size = UDim2.new(0,250,0,120)
+container.Position = UDim2.new(0.5,-125,0.5,-60)
 container.BackgroundColor3 = Color3.fromRGB(0,120,255)
 container.BorderSizePixel = 0
-
 local uicorner = Instance.new("UICorner", container)
 uicorner.CornerRadius = UDim.new(0,12)
 
--- Layout for stacking buttons
-local layout = Instance.new("UIListLayout", container)
-layout.Padding = UDim.new(0,5)
-layout.SortOrder = Enum.SortOrder.LayoutOrder
+-- Main Dropdown Button
+local mainBtn = Instance.new("TextButton", container)
+mainBtn.Size = UDim2.new(1,-20,0,30)
+mainBtn.Position = UDim2.new(0,10,0,10)
+mainBtn.Text = "Main ▼"
+mainBtn.Font = Enum.Font.SourceSans
+mainBtn.TextSize = 18
+mainBtn.BackgroundColor3 = Color3.fromRGB(0,90,200)
+mainBtn.TextColor3 = Color3.fromRGB(255,255,255)
+mainBtn.BorderSizePixel = 0
+mainBtn.AutoButtonColor = true
+local mainCorner = Instance.new("UICorner", mainBtn)
+mainCorner.CornerRadius = UDim.new(0,6)
 
--- Dropdowns
-local allDropdowns = {}
+-- Sub-buttons inside dropdown
+local attackBtn = Instance.new("TextButton", container)
+attackBtn.Size = UDim2.new(1,-40,0,30)
+attackBtn.Position = UDim2.new(0,20,0,50)
+attackBtn.Text = "Attack: OFF"
+attackBtn.Font = Enum.Font.SourceSans
+attackBtn.TextSize = 16
+attackBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
+attackBtn.TextColor3 = Color3.fromRGB(255,255,255)
+attackBtn.BorderSizePixel = 0
+local attackCorner = Instance.new("UICorner", attackBtn)
+attackCorner.CornerRadius = UDim.new(0,6)
+attackBtn.Visible = false
 
-local function createDropdown(name, buttons)
-    local dropButton = Instance.new("TextButton", container)
-    dropButton.Size = UDim2.new(1, -20, 0, 30)
-    dropButton.Text = name .. " ▶"
-    dropButton.Font = Enum.Font.SourceSans
-    dropButton.TextSize = 18
-    dropButton.BackgroundColor3 = Color3.fromRGB(0,90,200)
-    dropButton.TextColor3 = Color3.fromRGB(255,255,255)
-    dropButton.BorderSizePixel = 0
-    local dropCorner = Instance.new("UICorner", dropButton)
-    dropCorner.CornerRadius = UDim.new(0,6)
+local afkBtn = Instance.new("TextButton", container)
+afkBtn.Size = UDim2.new(1,-40,0,30)
+afkBtn.Position = UDim2.new(0,20,0,90)
+afkBtn.Text = "AFK: OFF"
+afkBtn.Font = Enum.Font.SourceSans
+afkBtn.TextSize = 16
+afkBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
+afkBtn.TextColor3 = Color3.fromRGB(255,255,255)
+afkBtn.BorderSizePixel = 0
+local afkCorner = Instance.new("UICorner", afkBtn)
+afkCorner.CornerRadius = UDim.new(0,6)
+afkBtn.Visible = false
 
-    local dropFrame = Instance.new("Frame", container)
-    dropFrame.Size = UDim2.new(1, -20, 0, #buttons * 35)
-    dropFrame.BackgroundColor3 = Color3.fromRGB(0,100,220)
-    dropFrame.BorderSizePixel = 0
-    dropFrame.Visible = false
-    local dropCorner2 = Instance.new("UICorner", dropFrame)
-    dropCorner2.CornerRadius = UDim.new(0,6)
+-- Toggle dropdown visibility
+mainBtn.MouseButton1Click:Connect(function()
+    attackBtn.Visible = not attackBtn.Visible
+    afkBtn.Visible = not afkBtn.Visible
+    mainBtn.Text = "Main " .. (attackBtn.Visible and "▲" or "▼")
+end)
 
-    local frameLayout = Instance.new("UIListLayout", dropFrame)
-    frameLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    frameLayout.Padding = UDim.new(0,5)
+-- Button functions
+attackBtn.MouseButton1Click:Connect(function()
+    if autoPower then stopAttack(); attackBtn.Text="Attack: OFF"
+    else startAttack(); attackBtn.Text="Attack: ON" end
+end)
 
-    -- Create buttons inside dropdown
-    for i,b in pairs(buttons) do
-        local btn = Instance.new("TextButton", dropFrame)
-        btn.Size = UDim2.new(1,0,0,30)
-        btn.Text = b.Text
-        btn.Font = Enum.Font.SourceSans
-        btn.TextSize = 16
-        btn.BackgroundColor3 = Color3.fromRGB(0,120,255)
-        btn.TextColor3 = Color3.fromRGB(255,255,255)
-        btn.BorderSizePixel = 0
-        local btnCorner = Instance.new("UICorner", btn)
-        btnCorner.CornerRadius = UDim.new(0,6)
-        btn.AutoButtonColor = true
-
-        btn.MouseButton1Click:Connect(function()
-            local newText = b.Func(btn)
-            if newText then btn.Text = newText end
-        end)
-    end
-
-    dropButton.MouseButton1Click:Connect(function()
-        local isOpen = dropFrame.Visible
-        dropFrame.Visible = not isOpen
-        dropButton.Text = name .. (isOpen and " ▶" or " ▼")
-    end)
-end
-
--- Main dropdown
-createDropdown("Main", {
-    {Text="Attack: OFF", Func=function()
-        if autoPower then stopAttack() return "Attack: OFF"
-        else startAttack() return "Attack: ON" end
-    end},
-    {Text="AFK: OFF", Func=function()
-        if antiAFK then stopAFK() return "AFK: OFF"
-        else startAFK() return "AFK: ON" end
-    end}
-})
-
--- Farm dropdown (empty for now)
-createDropdown("Farm", {})
+afkBtn.MouseButton1Click:Connect(function()
+    if antiAFK then stopAFK(); afkBtn.Text="AFK: OFF"
+    else startAFK(); afkBtn.Text="AFK: ON" end
+end)
 
 -- Dragging
 local dragging, dragInput, dragStart, startPos = false,nil,nil,nil
