@@ -47,105 +47,78 @@ gui.ResetOnSpawn = false
 gui.Enabled = true
 
 local container = Instance.new("Frame", gui)
-container.Size = UDim2.new(0, 200, 0, 0)
+container.Size = UDim2.new(0,200,0,50) -- start small
 container.Position = UDim2.new(0.5,-100,0.5,-125)
-container.BackgroundTransparency = 1 -- fully transparent container
+container.BackgroundColor3 = Color3.fromRGB(0,120,255)
+container.BackgroundTransparency = 0.1
 container.BorderSizePixel = 0
 
--- Background Frame behind all buttons
-local bgFrame = Instance.new("Frame", container)
-bgFrame.Size = UDim2.new(1, 0, 1, 0)
-bgFrame.Position = UDim2.new(0,0,0,0)
-bgFrame.BackgroundColor3 = Color3.fromRGB(0,120,255) -- blue background
-bgFrame.BackgroundTransparency = 0.1
-bgFrame.BorderSizePixel = 0
-bgFrame.ZIndex = 0 -- ensures it is behind buttons
-local bgCorner = Instance.new("UICorner", bgFrame)
+local bgCorner = Instance.new("UICorner", container)
 bgCorner.CornerRadius = UDim.new(0,10)
 
--- Dropdowns
-local allDropdowns = {}
+-- Buttons
+local mainBtn = Instance.new("TextButton", container)
+mainBtn.Size = UDim2.new(1,-20,0,30)
+mainBtn.Position = UDim2.new(0,10,0,10)
+mainBtn.Text = "Main ▼"
+mainBtn.Font = Enum.Font.SourceSans
+mainBtn.TextSize = 18
+mainBtn.BackgroundColor3 = Color3.fromRGB(0,90,200)
+mainBtn.TextColor3 = Color3.fromRGB(255,255,255)
+mainBtn.BorderSizePixel = 0
+mainBtn.AutoButtonColor = true
+local mainCorner = Instance.new("UICorner", mainBtn)
+mainCorner.CornerRadius = UDim.new(0,6)
 
-local function createDropdown(name, buttons)
-    local frame = Instance.new("Frame", container)
-    frame.Size = UDim2.new(0, 150, 0, 30)
-    frame.Position = UDim2.new(0, 0, 0, #container:GetChildren() * 35)
-    frame.BackgroundTransparency = 1 -- fully transparent frame
-    frame.BorderSizePixel = 0
+-- Sub-buttons
+local attackBtn = Instance.new("TextButton", container)
+attackBtn.Size = UDim2.new(1,-40,0,30)
+attackBtn.Position = UDim2.new(0,20,0,50)
+attackBtn.Text = "Attack: OFF"
+attackBtn.Font = Enum.Font.SourceSans
+attackBtn.TextSize = 16
+attackBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
+attackBtn.TextColor3 = Color3.fromRGB(255,255,255)
+attackBtn.BorderSizePixel = 0
+attackBtn.Visible = false
+local attackCorner = Instance.new("UICorner", attackBtn)
+attackCorner.CornerRadius = UDim.new(0,6)
 
-    local drop = Instance.new("TextButton", frame)
-    drop.Size = UDim2.new(1,0,1,0)
-    drop.Text = name .. " ▶"
-    drop.Font = Enum.Font.SourceSans
-    drop.TextSize = 18
-    drop.BackgroundTransparency = 0 -- visible button
-    drop.BackgroundColor3 = Color3.fromRGB(0,90,200)
-    drop.TextColor3 = Color3.fromRGB(255,255,255)
-    drop.AutoButtonColor = true
-    local dropCorner = Instance.new("UICorner", drop)
-    dropCorner.CornerRadius = UDim.new(0,6)
+local afkBtn = Instance.new("TextButton", container)
+afkBtn.Size = UDim2.new(1,-40,0,30)
+afkBtn.Position = UDim2.new(0,20,0,90)
+afkBtn.Text = "AFK: OFF"
+afkBtn.Font = Enum.Font.SourceSans
+afkBtn.TextSize = 16
+afkBtn.BackgroundColor3 = Color3.fromRGB(0,120,255)
+afkBtn.TextColor3 = Color3.fromRGB(255,255,255)
+afkBtn.BorderSizePixel = 0
+afkBtn.Visible = false
+local afkCorner = Instance.new("UICorner", afkBtn)
+afkCorner.CornerRadius = UDim.new(0,6)
 
-    local dropFrame = Instance.new("Frame", container)
-    dropFrame.Size = UDim2.new(0,150,0,#buttons * 30)
-    dropFrame.Position = UDim2.new(1,0,0,0) -- expand to right
-    dropFrame.BackgroundColor3 = Color3.fromRGB(0,90,200)
-    dropFrame.BackgroundTransparency = 0.1
-    dropFrame.BorderSizePixel = 0
-    dropFrame.Visible = false
-    dropFrame.ZIndex = 1 -- above background
+-- Toggle dropdown
+mainBtn.MouseButton1Click:Connect(function()
+    local open = not attackBtn.Visible
+    attackBtn.Visible = open
+    afkBtn.Visible = open
+    container.Size = UDim2.new(0,200,0, open and 120 or 50)
+    mainBtn.Text = "Main " .. (open and "▲" or "▼")
+end)
 
-    table.insert(allDropdowns, {Button = drop, Frame = dropFrame, Name = name})
+-- Button functions
+attackBtn.MouseButton1Click:Connect(function()
+    if autoPower then stopAttack(); attackBtn.Text="Attack: OFF"
+    else startAttack(); attackBtn.Text="Attack: ON" end
+end)
 
-    for i, b in pairs(buttons) do
-        local btn = Instance.new("TextButton", dropFrame)
-        btn.Size = UDim2.new(1,0,0,30)
-        btn.Position = UDim2.new(0,0,(i-1)*30,0)
-        btn.Text = b.Text
-        btn.Font = Enum.Font.SourceSans
-        btn.TextSize = 16
-        btn.BackgroundTransparency = 0 -- visible button
-        btn.BackgroundColor3 = Color3.fromRGB(0,120,255)
-        btn.TextColor3 = Color3.fromRGB(255,255,255)
-        btn.AutoButtonColor = true
-        local btnCorner = Instance.new("UICorner", btn)
-        btnCorner.CornerRadius = UDim.new(0,6)
-        btn.ZIndex = 2 -- above background
-
-        btn.MouseButton1Click:Connect(function()
-            local newText = b.Func(btn)
-            if newText then
-                btn.Text = newText
-            end
-        end)
-    end
-
-    drop.MouseButton1Click:Connect(function()
-        local isOpen = dropFrame.Visible
-        for _, dd in ipairs(allDropdowns) do
-            dd.Frame.Visible = false
-            dd.Button.Text = dd.Name .. " ▶"
-        end
-        dropFrame.Visible = not isOpen
-        drop.Text = name .. (dropFrame.Visible and " ▼" or " ▶")
-    end)
-end
-
--- Create Dropdowns
-createDropdown("Main", {
-    {Text = "Attack: OFF", Func = function()
-        if autoPower then stopAttack(); return "Attack: OFF"
-        else startAttack(); return "Attack: ON" end
-    end},
-    {Text = "AFK: OFF", Func = function()
-        if antiAFK then stopAFK(); return "AFK: OFF"
-        else startAFK(); return "AFK: ON" end
-    end}
-})
-
-createDropdown("Farm", {})
+afkBtn.MouseButton1Click:Connect(function()
+    if antiAFK then stopAFK(); afkBtn.Text="AFK: OFF"
+    else startAFK(); afkBtn.Text="AFK: ON" end
+end)
 
 -- Dragging
-local dragging, dragInput, dragStart, startPos = false, nil, nil, nil
+local dragging, dragInput, dragStart, startPos = false,nil,nil,nil
 container.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = true
@@ -157,9 +130,7 @@ container.InputBegan:Connect(function(input)
     end
 end)
 container.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
-        dragInput = input
-    end
+    if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput = input end
 end)
 UserInputService.InputChanged:Connect(function(input)
     if input == dragInput and dragging then
