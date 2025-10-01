@@ -43,8 +43,8 @@ gui.ResetOnSpawn = false
 gui.Enabled = true
 
 local container = Instance.new("Frame", gui)
-container.Size = UDim2.new(0, 200, 0, 50)
-container.Position = UDim2.new(0.5, -100, 0.5, -125)
+container.Size = UDim2.new(0, 220, 0, 50) -- initial width larger to fit sub-buttons
+container.Position = UDim2.new(0.5, -110, 0.5, -125)
 container.BackgroundColor3 = Color3.fromRGB(0,120,255)
 container.BackgroundTransparency = 0.1
 container.BorderSizePixel = 0
@@ -53,8 +53,8 @@ Instance.new("UICorner", container).CornerRadius = UDim.new(0,10)
 -- Dropdown creator
 local function createDropdown(title, buttons)
 	local mainBtn = Instance.new("TextButton", container)
-	mainBtn.Size = UDim2.new(0,180,0,30)
-	mainBtn.Position = UDim2.new(0,10,0,#container:GetChildren()*35-35)
+	mainBtn.Size = UDim2.new(0, 180, 0, 30)
+	mainBtn.Position = UDim2.new(0, 10, 0, #container:GetChildren()*35 - 35)
 	mainBtn.Text = title.." ▼"
 	mainBtn.Font = Enum.Font.SourceSans
 	mainBtn.TextSize = 18
@@ -65,10 +65,11 @@ local function createDropdown(title, buttons)
 	Instance.new("UICorner", mainBtn).CornerRadius = UDim.new(0,6)
 
 	local subButtons = {}
+	local spacing = 5
 	for i, b in ipairs(buttons) do
 		local btn = Instance.new("TextButton", container)
-		btn.Size = UDim2.new(0,160,0,30)
-		btn.Position = UDim2.new(0,20,0, mainBtn.Position.Y.Offset + 30*i)
+		btn.Size = UDim2.new(0, 120, 0, 30)
+		btn.Position = UDim2.new(0, mainBtn.Position.X.Offset + mainBtn.Size.X.Offset + spacing, 0, mainBtn.Position.Y.Offset + (i-1)*(30+spacing))
 		btn.Text = b.Text
 		btn.Font = Enum.Font.SourceSans
 		btn.TextSize = 16
@@ -92,12 +93,14 @@ local function createDropdown(title, buttons)
 
 		-- resize container dynamically
 		local totalHeight = 50
+		local maxWidth = 220
 		for _, child in ipairs(container:GetChildren()) do
 			if child:IsA("TextButton") and child.Visible then
 				totalHeight = math.max(totalHeight, child.Position.Y.Offset + child.Size.Y.Offset + 10)
+				maxWidth = math.max(maxWidth, child.Position.X.Offset + child.Size.X.Offset + 10)
 			end
 		end
-		container.Size = UDim2.new(container.Size.X.Scale, container.Size.X.Offset, 0, totalHeight)
+		container.Size = UDim2.new(container.Size.X.Scale, maxWidth, 0, totalHeight)
 	end)
 end
 
