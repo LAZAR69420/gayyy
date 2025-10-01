@@ -1,20 +1,18 @@
--- CuteHub Style UI with Main + Farm Dropdowns
+-- CuteHub Style UI with Main + Farm Dropdowns (Vertical)
 -- Author: YourName
 -- GitHub: https://github.com/YourGitHubUsername/YourRepoName
--- Description: Adds a draggable CuteHub-style UI with Attack, AFK, and Farm dropdowns
 
 -- Services
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
--- Player & Remotes
 local player = Players.LocalPlayer
 local r = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PlayerClickAttack")
 local autoPower, antiAFK = false, false
 
 -- =======================
--- ScreenGui Setup
+-- ScreenGui
 -- =======================
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 gui.Name = "CuteHubCustomUI"
@@ -30,13 +28,13 @@ container.BorderSizePixel = 0
 Instance.new("UICorner", container).CornerRadius = UDim.new(0,12)
 
 -- =======================
--- Dropdown Creation Function
+-- Dropdown Creation Function (Vertical)
 -- =======================
-local function createDropdown(parent, title, posX, buttons)
+local function createDropdown(parent, title, posY, buttons)
     local btn = Instance.new("TextButton", parent)
     btn.Size = UDim2.new(0,200,0,35)
-    btn.Position = UDim2.new(0,posX,0,7)
-    btn.Text = title .. " ▶"
+    btn.Position = UDim2.new(0,10,0,posY)
+    btn.Text = title .. " ▼"
     btn.Font = Enum.Font.SourceSans
     btn.TextSize = 18
     btn.BackgroundColor3 = Color3.fromRGB(0,90,200)
@@ -45,9 +43,9 @@ local function createDropdown(parent, title, posX, buttons)
     btn.AutoButtonColor = true
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0,8)
 
-    local frame = Instance.new("Frame", gui)
+    local frame = Instance.new("Frame", parent)
     frame.Size = UDim2.new(0,200,0,#buttons*35)
-    frame.Position = UDim2.new(0, container.AbsolutePosition.X + posX + 205, 0, container.AbsolutePosition.Y)
+    frame.Position = UDim2.new(0,10,0,posY+35)
     frame.BackgroundColor3 = Color3.fromRGB(0,90,200)
     frame.BackgroundTransparency = 0.1
     frame.BorderSizePixel = 0
@@ -71,14 +69,14 @@ local function createDropdown(parent, title, posX, buttons)
 
     btn.MouseButton1Click:Connect(function()
         frame.Visible = not frame.Visible
-        btn.Text = title .. (frame.Visible and " ▼" or " ▶")
+        btn.Text = title .. (frame.Visible and " ▲" or " ▼")
     end)
 end
 
 -- =======================
 -- Main Dropdown
 -- =======================
-createDropdown(container, "Main", 10, {
+createDropdown(container, "Main", 7, {
     {Text="Attack: OFF", Func=function()
         if autoPower then
             autoPower=false
@@ -113,16 +111,16 @@ createDropdown(container, "Main", 10, {
 })
 
 -- =======================
--- Farm Dropdown (Placeholder)
+-- Farm Dropdown (Below Main)
 -- =======================
-createDropdown(container, "Farm", 225, {
+createDropdown(container, "Farm", 60, {  -- position below Main
     {Text="Farm Action", Func=function()
-        print("Farm button clicked!") -- replace with actual farm script
+        print("Farm button clicked!") -- placeholder
     end}
 })
 
 -- =======================
--- Dragging Logic
+-- Dragging
 -- =======================
 local dragging, dragInput, dragStart, startPos=false,nil,nil,nil
 container.InputBegan:Connect(function(input)
@@ -151,7 +149,7 @@ UserInputService.InputChanged:Connect(function(input)
 end)
 
 -- =======================
--- Toggle UI Visibility with Left Control
+-- Toggle UI with Left Control
 -- =======================
 UserInputService.InputBegan:Connect(function(input,gp)
     if gp then return end
