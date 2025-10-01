@@ -7,7 +7,7 @@ local r = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PlayerClickAtt
 
 local autoPower, antiAFK = false, false
 
--- Functions
+-- Attack and AFK Functions
 local function startAttack()
     if autoPower then return end
     autoPower = true
@@ -35,28 +35,26 @@ local function startAFK()
 end
 local function stopAFK() antiAFK=false end
 
--- GUI
+-- GUI Setup
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 gui.Name = "atk_gui"
 gui.ResetOnSpawn = false
 gui.Enabled = true
 
 local container = Instance.new("Frame", gui)
-container.Size = UDim2.new(0,200,0,50) -- start height small
+container.Size = UDim2.new(0,200,0,50)
 container.Position = UDim2.new(0.5,-100,0.5,-125)
 container.BackgroundColor3 = Color3.fromRGB(0,120,255)
 container.BackgroundTransparency = 0.1
 container.BorderSizePixel = 0
 Instance.new("UICorner", container).CornerRadius = UDim.new(0,10)
 
--- Dropdown system
-local dropdowns = {}
-
-local function createDropdown(name, buttons)
+-- Create a dropdown inside container
+local function createDropdown(title, buttons)
     local mainBtn = Instance.new("TextButton", container)
-    mainBtn.Size = UDim2.new(0,150,0,30)
+    mainBtn.Size = UDim2.new(0,180,0,30)
     mainBtn.Position = UDim2.new(0,10,0,#container:GetChildren()*35-35)
-    mainBtn.Text = name.." ▶"
+    mainBtn.Text = title.." ▼"
     mainBtn.Font = Enum.Font.SourceSans
     mainBtn.TextSize = 18
     mainBtn.BackgroundColor3 = Color3.fromRGB(0,90,200)
@@ -65,18 +63,11 @@ local function createDropdown(name, buttons)
     mainBtn.AutoButtonColor = true
     Instance.new("UICorner", mainBtn).CornerRadius = UDim.new(0,6)
 
-    local subFrame = Instance.new("Frame", container)
-    subFrame.Size = UDim2.new(0,150,#buttons*30)
-    subFrame.Position = UDim2.new(1,5,0,mainBtn.Position.Y.Offset)
-    subFrame.BackgroundColor3 = Color3.fromRGB(0,90,200)
-    subFrame.BackgroundTransparency = 0.1
-    subFrame.Visible = false
-    Instance.new("UICorner", subFrame).CornerRadius = UDim.new(0,6)
-
+    local subButtons = {}
     for i,b in ipairs(buttons) do
-        local btn = Instance.new("TextButton", subFrame)
-        btn.Size = UDim2.new(1,0,0,30)
-        btn.Position = UDim2.new(0,0,(i-1)*30,0)
+        local btn = Instance.new("TextButton", container)
+        btn.Size = UDim2.new(0,160,0,30)
+        btn.Position = UDim2.new(0,20,0, mainBtn.Position.Y.Offset + 30*i)
         btn.Text = b.Text
         btn.Font = Enum.Font.SourceSans
         btn.TextSize = 16
@@ -84,30 +75,32 @@ local function createDropdown(name, buttons)
         btn.TextColor3 = Color3.fromRGB(255,255,255)
         btn.BorderSizePixel = 0
         btn.AutoButtonColor = true
+        btn.Visible = false
         Instance.new("UICorner", btn).CornerRadius = UDim.new(0,6)
         btn.MouseButton1Click:Connect(b.Func)
+        table.insert(subButtons, btn)
     end
 
+    local open = false
     mainBtn.MouseButton1Click:Connect(function()
-        subFrame.Visible = not subFrame.Visible
-        mainBtn.Text = name.." "..(subFrame.Visible and "▼" or "▶")
+        open = not open
+        for _, btn in ipairs(subButtons) do
+            btn.Visible = open
+        end
+        mainBtn.Text = title.." "..(open and "▲" or "▼")
 
-        -- Resize container height
-        local openHeight = 50
-        for _,child in ipairs(container:GetChildren()) do
-            if child:IsA("TextButton") then
-                openHeight = openHeight + child.Size.Y.Offset
-            elseif child:IsA("Frame") and child.Visible then
-                openHeight = openHeight + child.Size.Y.Offset
+        -- Resize container to fit buttons
+        local totalHeight = 50
+        for _, child in ipairs(container:GetChildren()) do
+            if child:IsA("TextButton") and child.Visible then
+                totalHeight = math.max(totalHeight, child.Position.Y.Offset + child.Size.Y.Offset + 10)
             end
         end
-        container.Size = UDim2.new(container.Size.X.Scale, container.Size.X.Offset, 0, openHeight)
+        container.Size = UDim2.new(container.Size.X.Scale, container.Size.X.Offset, 0, totalHeight)
     end)
-
-    table.insert(dropdowns,{Main=mainBtn,Sub=subFrame})
 end
 
--- Dropdowns
+-- Main dropdown
 createDropdown("Main", {
     {Text="Attack: OFF", Func=function(btn)
         if autoPower then stopAttack(); btn.Text="Attack: OFF" else startAttack(); btn.Text="Attack: ON" end
@@ -117,8 +110,9 @@ createDropdown("Main", {
     end}
 })
 
+-- Farm dropdown (future)
 createDropdown("Farm", {
-    -- future buttons
+    -- add buttons later
 })
 
 -- Dragging
@@ -129,12 +123,12 @@ container.InputBegan:Connect(function(input)
         dragStart = input.Position
         startPos = container.Position
         input.Changed:Connect(function()
-            if input.UserInputState==Enum.UserInputState.End then dragging=false end
+            if input.UserInputState == Enum.UserInputState.End then dragging=false end
         end)
     end
 end)
 container.InputChanged:Connect(function(input)
-    if input.UserInputType==Enum.UserInputType.MouseMovement then dragInput=input end
+    if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput=input end
 end)
 UserInputService.InputChanged:Connect(function(input)
     if input==dragInput and dragging then
