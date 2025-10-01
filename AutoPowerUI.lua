@@ -1,4 +1,4 @@
--- CuteHub Style UI with Main + Farm Dropdowns (Vertical)
+-- CuteHub Style UI with Main + Farm Dropdowns (Right Expansion)
 -- Author: YourName
 -- GitHub: https://github.com/YourGitHubUsername/YourRepoName
 
@@ -20,15 +20,15 @@ gui.ResetOnSpawn = false
 gui.Enabled = true
 
 local container = Instance.new("Frame", gui)
-container.Size = UDim2.new(0,250,0,50)
-container.Position = UDim2.new(0.5,-125,0.5,-25)
+container.Size = UDim2.new(0,250,0,100)
+container.Position = UDim2.new(0.5,-125,0.5,-50)
 container.BackgroundColor3 = Color3.fromRGB(0,120,255)
 container.BackgroundTransparency = 0.1
 container.BorderSizePixel = 0
 Instance.new("UICorner", container).CornerRadius = UDim.new(0,12)
 
 -- =======================
--- Dropdown Creation Function (Vertical)
+-- Dropdown Creation Function (Right Expansion)
 -- =======================
 local function createDropdown(parent, title, posY, buttons)
     local btn = Instance.new("TextButton", parent)
@@ -44,8 +44,8 @@ local function createDropdown(parent, title, posY, buttons)
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0,8)
 
     local frame = Instance.new("Frame", parent)
-    frame.Size = UDim2.new(0,200,0,#buttons*35)
-    frame.Position = UDim2.new(0,10,0,posY+35)
+    frame.Size = UDim2.new(0,150,#buttons*35,0) -- width 150
+    frame.Position = UDim2.new(0,220,posY) -- to the right of main button
     frame.BackgroundColor3 = Color3.fromRGB(0,90,200)
     frame.BackgroundTransparency = 0.1
     frame.BorderSizePixel = 0
@@ -113,7 +113,7 @@ createDropdown(container, "Main", 7, {
 -- =======================
 -- Farm Dropdown (Below Main)
 -- =======================
-createDropdown(container, "Farm", 60, {  -- position below Main
+createDropdown(container, "Farm", 52, {  -- positioned below Main
     {Text="Farm Action", Func=function()
         print("Farm button clicked!") -- placeholder
     end}
