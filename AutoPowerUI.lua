@@ -14,18 +14,18 @@ gui.Enabled = true
 
 -- Main container
 local container = Instance.new("Frame", gui)
-container.Size = UDim2.new(0,250,0,50)
-container.Position = UDim2.new(0.5,-125,0.5,-25)
+container.Size = UDim2.new(0,250,0,100)
+container.Position = UDim2.new(0.5,-125,0.5,-50)
 container.BackgroundColor3 = Color3.fromRGB(0,120,255)
 container.BackgroundTransparency = 0.1
 container.BorderSizePixel = 0
 Instance.new("UICorner", container).CornerRadius = UDim.new(0,12)
 
 -- Function to create dropdown
-local function createDropdown(parent, name, width, buttons)
+local function createDropdown(parent, name, width, buttons, yOffset)
     local btn = Instance.new("TextButton", parent)
     btn.Size = UDim2.new(0,width,0,35)
-    btn.Position = UDim2.new(0,10,0,7 + (#parent:GetChildren()-1)*40)
+    btn.Position = UDim2.new(0,10,0,yOffset)
     btn.Text = name .. " ▼"
     btn.Font = Enum.Font.SourceSans
     btn.TextSize = 18
@@ -37,7 +37,7 @@ local function createDropdown(parent, name, width, buttons)
 
     local dropFrame = Instance.new("Frame", parent)
     dropFrame.Size = UDim2.new(0,width,0,#buttons*35)
-    dropFrame.Position = UDim2.new(1,5,0,0)
+    dropFrame.Position = UDim2.new(1,5,0,yOffset)
     dropFrame.BackgroundColor3 = Color3.fromRGB(0,90,200)
     dropFrame.BackgroundTransparency = 0.1
     dropFrame.BorderSizePixel = 0
@@ -70,8 +70,8 @@ local function createDropdown(parent, name, width, buttons)
     return {Button=btn, Frame=dropFrame}
 end
 
--- Main dropdown
-local mainDropdown = createDropdown(container, "Main", 200, {
+-- Main dropdown at top
+createDropdown(container, "Main", 200, {
     {Text="Attack: OFF", Func=function(subBtn)
         local r = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("PlayerClickAttack")
         if autoPower then
@@ -106,11 +106,11 @@ local mainDropdown = createDropdown(container, "Main", 200, {
             end)
         end
     end}
-})
+}, 5)
 
--- Farm dropdown with HeroSkillHarm button
-local farmDropdown = createDropdown(container, "Farm", 200, {
-    {Text="Use Hero Skill", Func=function()
+-- Farm dropdown below Main
+createDropdown(container, "Farm", 200, {
+    {Text="Hero Skill", Func=function()
         local HeroSkillHarm = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("HeroSkillHarm")
         HeroSkillHarm:FireServer({
             harmIndex = 100000,
@@ -119,9 +119,9 @@ local farmDropdown = createDropdown(container, "Farm", 200, {
             skillId = 200001
         })
     end}
-})
+}, 50) -- yOffset is below Main button
 
--- Dragging
+-- Dragging logic
 local dragging, dragInput, dragStart, startPos=false,nil,nil,nil
 container.InputBegan:Connect(function(input)
     if input.UserInputType==Enum.UserInputType.MouseButton1 then
